@@ -1,0 +1,1 @@
+document.getElementById('app').insertAdjacentHTML('beforeend',' — ready');

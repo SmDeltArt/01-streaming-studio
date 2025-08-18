@@ -1,0 +1,233 @@
+/* Camera Overlay */
+.camera-overlay {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 250px;
+    height: 188px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 3px solid #667eea;
+    cursor: move;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.camera-overlay.shape-circle {
+    border-radius: 50%;
+    aspect-ratio: 1;
+    height: auto;
+}
+
+.camera-overlay.shape-rounded {
+    border-radius: 25px;
+}
+
+.camera-overlay.shape-hexagon {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%) !important;
+    border-radius: 0 !important;
+    transform-origin: center center !important;
+}
+
+.camera-overlay.shape-star {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%) !important;
+    border-radius: 0 !important;
+    transform-origin: center center !important;
+}
+
+.camera-overlay.shape-diamond {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%) !important;
+    border-radius: 0 !important;
+    aspect-ratio: 1;
+    height: auto;
+    transform-origin: center center !important;
+}
+
+.camera-overlay.border-none {
+    border: none;
+}
+
+.camera-overlay.border-solid {
+    border: 4px solid #667eea;
+}
+
+.camera-overlay.border-glowing {
+    border: 3px solid #667eea;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 
+                0 0 40px rgba(102, 126, 234, 0.3),
+                inset 0 0 20px rgba(102, 126, 234, 0.1);
+}
+
+.camera-overlay.border-animated {
+    border: 3px solid transparent;
+    background: linear-gradient(45deg, #667eea, #764ba2, #667eea) border-box;
+    background-clip: border-box;
+    animation: borderRotate 3s linear infinite;
+}
+
+@keyframes borderRotate {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+}
+
+.camera-overlay.border-neon {
+    border: 2px solid #00ff88;
+    box-shadow: 0 0 10px #00ff88,
+                0 0 20px #00ff88,
+                0 0 40px #00ff88,
+                inset 0 0 10px rgba(0, 255, 136, 0.1);
+    animation: neonPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes neonPulse {
+    from { box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00ff88; }
+    to { box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88; }
+}
+
+.camera-overlay.effect-blur-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: inherit;
+    filter: blur(10px);
+    z-index: -1;
+}
+
+.camera-overlay.effect-vintage #cameraVideo {
+    filter: sepia(0.8) contrast(1.2) brightness(0.9) saturate(0.8);
+}
+
+.camera-overlay.effect-sepia #cameraVideo {
+    filter: sepia(1);
+}
+
+.camera-overlay.effect-grayscale #cameraVideo {
+    filter: grayscale(1);
+}
+
+.camera-overlay.effect-high-contrast #cameraVideo {
+    filter: contrast(1.5) brightness(1.1);
+}
+
+.camera-overlay.auto-focus::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    animation: focusIndicator 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes focusIndicator {
+    0%, 90%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+    10%, 80% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    45% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.9); }
+}
+
+.camera-overlay.hover-scale-enabled:hover {
+    transform: scale(1.05);
+}
+
+.camera-overlay.hover-scale-disabled:hover {
+    transform: scale(1.02);
+}
+
+.camera-overlay:hover {
+    transform: scale(1.02);
+}
+
+.camera-overlay.dragging {
+    transform: scale(1.05);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.camera-overlay.dragging.shape-star {
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%) !important;
+    transform-origin: center center !important;
+}
+
+.camera-overlay.dragging.shape-hexagon {
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%) !important;
+    transform-origin: center center !important;
+}
+
+.camera-overlay.dragging.shape-diamond {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%) !important;
+    transform-origin: center center !important;
+}
+
+.camera-overlay.shadow-0 { box-shadow: none; }
+.camera-overlay.shadow-20 { box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); }
+.camera-overlay.shadow-40 { box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); }
+.camera-overlay.shadow-60 { box-shadow: 0 6px 30px rgba(0, 0, 0, 0.6); }
+.camera-overlay.shadow-80 { box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8); }
+.camera-overlay.shadow-100 { box-shadow: 0 10px 50px rgba(0, 0, 0, 1); }
+
+#cameraVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #2d3748;
+}
+
+.camera-controls-mini {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 4px 8px;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.camera-overlay:hover .camera-controls-mini {
+    opacity: 1;
+}
+
+.camera-controls-mini button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: background 0.2s;
+}
+
+.camera-controls-mini button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.drag-handle {
+    cursor: move !important;
+}
+
+/* Audio Visualizer */
+.audio-visualizer {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    height: 60px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    z-index: 999;
+    display: none;
+}

@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Content Streaming Studio</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="controls-content">
+                <div class="panel-header">
+                    <h1>
+                        <div class="header-top">
+                            <span class="delta-label">Sm<svg class="delta-animation" width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="12,4 20,18 4,18" fill="none" stroke="currentColor" stroke-width="3"/>
+                            </svg>rt</span>
+                            <span class="delta-only"><svg class="delta-animation" width="30" height="30" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <polygon points="12,4 20,18 4,18" fill="none" stroke="currentColor" stroke-width="3"/>
+                            </svg></span>
+                        </div>
+                        <div class="header-bottom">
+                            <i class="fas fa-broadcast-tower"></i> 
+                            <span class="studio-label">Streaming Studio</span>
+                        </div>
+                    </h1>
+                    <div class="status-indicator">
+                        <div class="status-dot" id="statusDot"></div>
+                        <span id="statusText">Ready</span>
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h3>Media Source</h3>
+                    <div class="media-upload-group">
+                        <input type="file" id="mediaUploadInput" accept="video/*,audio/*,.mkv,.avi,.mov,.wmv,.flv,.webm,.ogv,.mp4,.m4v" style="display: none;">
+                        <button id="browseMediaBtn" class="btn secondary" title="Browse Media Files">
+                            <span class="icon">🎬</span>
+                            <span class="label">Browse Media</span>
+                        </button>
+                        <div class="media-info-display" id="mediaInfoDisplay" style="display: none;">
+                            <span id="mediaFileName"></span>
+                            <span id="mediaFileSize"></span>
+                        </div>
+                    </div>
+                    <div class="media-controls-options">
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="maintainAspectRatio" checked>
+                                <span class="toggle-label">Maintain Aspect Ratio</span>
+                            </label>
+                        </div>
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="hideMediaControls">
+                                <span class="toggle-label">Hide Media Player Bar</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Content Source</h3>
+                    <div class="input-group">
+                        <input type="url" id="urlInput" placeholder="Enter website URL or content link">
+                        <button id="loadBtn" class="btn primary" title="Load Content (L)">
+                            <span class="icon">🔗</span>
+                            <span class="label">Load</span>
+                            <span class="shortcut">(L)</span>
+                        </button>
+                    </div>
+                    <div class="quick-links">
+                        <button class="quick-link-btn" data-url="https://example.com">Example Site</button>
+                        <button class="quick-link-btn" data-url="about:blank">Blank Page</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Camera & Audio</h3>
+                    <div class="media-controls">
+                        <button id="cameraBtn" class="btn secondary" title="Toggle Camera (V)">
+                            <span class="icon">📹</span>
+                            <span class="label">Camera</span>
+                            <span class="shortcut">(V)</span>
+                        </button>
+                        <button id="micBtn" class="btn secondary" title="Toggle Microphone (M)">
+                            <span class="icon">🎤</span>
+                            <span class="label">Mic</span>
+                            <span class="shortcut">(M)</span>
+                        </button>
+                    </div>
+                    
+                    <div class="camera-settings">
+                        <label>Camera Position:</label>
+                        <select id="cameraPosition">
+                            <option value="top-right">Top Right</option>
+                            <option value="top-left">Top Left</option>
+                            <option value="bottom-right">Bottom Right</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="center">Center</option>
+                        </select>
+                        
+                        <label>Camera Size:</label>
+                        <input type="range" id="cameraSize" min="150" max="400" value="250">
+                        <span id="cameraSizeValue">250px</span>
+                        
+                        <label>Frame Shape:</label>
+                        <select id="frameShape">
+                            <option value="rectangle">Rectangle</option>
+                            <option value="circle">Circle</option>
+                            <option value="rounded">Rounded Square</option>
+                            <option value="hexagon">Hexagon</option>
+                            <option value="star">Star</option>
+                            <option value="diamond">Diamond</option>
+                        </select>
+                        
+                        <label>Border Style:</label>
+                        <select id="borderStyle">
+                            <option value="none">None</option>
+                            <option value="solid">Solid</option>
+                            <option value="glowing">Glowing</option>
+                            <option value="animated">Animated</option>
+                            <option value="neon">Neon</option>
+                        </select>
+                        
+                        <label>Visual Effects:</label>
+                        <select id="visualEffects">
+                            <option value="none">None</option>
+                            <option value="blur-bg">Blur Background</option>
+                            <option value="vintage">Vintage</option>
+                            <option value="sepia">Sepia</option>
+                            <option value="grayscale">Grayscale</option>
+                            <option value="high-contrast">High Contrast</option>
+                        </select>
+                        
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="autoFocus" checked>
+                                <span class="toggle-label">Smart Auto Focus</span>
+                            </label>
+                        </div>
+                        
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="hoverScale" checked>
+                                <span class="toggle-label">Hover Scale Effect</span>
+                            </label>
+                        </div>
+                        
+                        <label>Shadow Intensity:</label>
+                        <input type="range" id="shadowIntensity" min="0" max="100" value="30">
+                        <span id="shadowValue">30%</span>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Recording Settings</h3>
+                    <div class="recording-size-controls">
+                        <label>Recording Screen Size:</label>
+                        <select id="recordingSize">
+                            <option value="auto">Auto (Full Screen)</option>
+                            <option value="1920x1080">1920x1080 (1080p)</option>
+                            <option value="1280x720">1280x720 (720p)</option>
+                            <option value="854x480">854x480 (480p)</option>
+                            <option value="640x360">640x360 (360p)</option>
+                            <option value="1024x1024">1024x1024 (Square)</option>
+                            <option value="512x512">512x512 (Small Square)</option>
+                            <option value="1024x768">1024x768 (4:3)</option>
+                            <option value="800x600">800x600 (4:3 Small)</option>
+                        </select>
+                        <div class="size-display">
+                            <span id="currentSize">Auto</span>
+                        </div>
+                    </div>
+                    
+                    <div class="frame-rate-controls">
+                        <label>Frame Rate:</label>
+                        <select id="frameRateSelect">
+                            <option value="24">24 FPS</option>
+                            <option value="30" selected>30 FPS</option>
+                            <option value="60">60 FPS</option>
+                            <option value="120">120 FPS</option>
+                        </select>
+                    </div>
+                    
+                    <div class="recording-format-controls">
+                        <label>Recording Format:</label>
+                        <select id="recordingFormat">
+                            <option value="webm" selected>WebM</option>
+                            <option value="mp4">MP4</option>
+                            <option value="avi">AVI</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Quick Access</h3>
+                    <div class="quick-access-controls">
+                        <button id="settingsBtn" class="btn secondary" title="Settings">
+                            <span class="icon">⚙️</span>
+                            <span class="label">Settings</span>
+                        </button>
+                    </div>
+                    
+                    <div class="active-items-section" id="activeItemsSection">
+                        <div class="active-items-header">
+                            <span>Active Displays</span>
+                            <span class="active-count" id="activeCount">0</span>
+                        </div>
+                        <div class="active-items-list" id="activeItemsList">
+                            <!-- Active items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>Recording Controls</h3>
+                    <div class="recording-status" id="recordingStatus">
+                        <span class="status-indicator" id="recordingIndicator"></span>
+                        <span id="recordingStatusText">Ready to Record</span>
+                        <span id="recordingTimer" style="display: none;">00:00</span>
+                    </div>
+                    
+                    <button id="recordBtn" class="btn record-btn" title="Start Recording (R)" data-recording="false">
+                        <span class="icon">⏺️</span>
+                        <span class="label">Start Recording <span class="shortcut">(R)</span></span>
+                    </button>
+                    <button id="pauseBtn" class="btn pause-btn" title="Pause Recording (P)" style="display: none;" disabled>
+                        <span class="icon">⏸️</span>
+                        <span class="label">Pause <span class="shortcut">(P)</span></span>
+                    </button>
+                    <button id="stopBtn" class="btn stop-btn" title="Stop Recording (S)" disabled>
+                        <span class="icon">⏹️</span>
+                        <span class="label">Stop <span class="shortcut">(S)</span></span>
+                    </button>
+                    <button id="fullscreenBtn" class="btn fullscreen-btn" title="Toggle Fullscreen (F)">
+                        <span class="icon">🖥️</span>
+                        <span class="label">Fullscreen <span class="shortcut">(F)</span></span>
+                    </button>
+                    
+                    <button id="infoBtn" class="btn info-btn" title="Recording Tips & Shortcuts (I)">
+                        <span class="icon">ℹ️</span>
+                        <span class="label">Info <span class="shortcut">(I)</span></span>
+                    </button>
+                    
+                    <button id="voiceRecorderBtn" class="btn voice-recorder-btn" title="AI Voice Recorder (R)">
+                        <span class="icon">🎙️</span>
+                        <span class="label">Voice <span class="shortcut">(R)</span></span>
+                    </button>
+                    
+                    <button id="textBtn" class="btn text-btn" title="Add Text Display (T)">
+                        <span class="icon">📝</span>
+                        <span class="label">+ Text <span class="shortcut">(T)</span></span>
+                    </button>
+                    
+                    <button id="imageBtn" class="btn image-btn" title="Add Image Display (I)">
+                        <span class="icon">🖼️</span>
+                        <span class="label">+ Image <span class="shortcut">(I)</span></span>
+                    </button>
+                    
+                    <button id="smartRedactorBtn" class="btn smart-redactor-btn" title="AI Smart Redactor (A)">
+                        <span class="icon">🤖</span>
+                        <span class="label">+ AI Redactor <span class="shortcut">(A)</span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Modal -->
+        <div class="info-modal" id="infoModal">
+            <div class="info-modal-content">
+                <div class="info-modal-header">
+                    <h3>📋 Recording Tips & Shortcuts</h3>
+                    <button class="info-close-btn" id="infoCloseBtn">✕</button>
+                </div>
+                <div class="info-modal-body">
+                    <div class="recording-info-content">
+                        <p><i class="fas fa-info-circle"></i> Use Windows Game Bar (Win + G) or OBS to record the content area</p>
+                        <div class="recording-tips">
+                            <h4>🎬 Recording Tips:</h4>
+                            <ul>
+                                <li>Press Win + G to open Game Bar</li>
+                                <li>Click "Capture" then select the content window</li>
+                                <li>Position your camera overlay as needed</li>
+                                <li>Test audio levels before recording</li>
+                            </ul>
+                            <h4>⌨️ Keyboard Shortcuts:</h4>
+                            <ul>
+                                <li><strong>C:</strong> Toggle panel</li>
+                                <li><strong>L:</strong> Load content</li>
+                                <li><strong>V:</strong> Toggle camera</li>
+                                <li><strong>M:</strong> Toggle microphone</li>
+                                <li><strong>F:</strong> Fullscreen</li>
+                                <li><strong>R/S:</strong> Record/Stop</li>
+                                <li><strong>P:</strong> Toggle camera visibility</li>
+                                <li><strong>I:</strong> Show/Hide this info panel</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="settings-modal" id="settingsModal">
+            <div class="settings-modal-content">
+                <div class="settings-modal-header">
+                    <h3>⚙️ Settings</h3>
+                    <button class="settings-close-btn" id="settingsCloseBtn">✕</button>
+                </div>
+                <div class="settings-modal-body">
+                    <div class="theme-toggle-section">
+                        <h4>🎨 Interface Theme</h4>
+                        <div class="theme-toggle-control">
+                            <div class="theme-toggle-switch" id="themeToggleSwitch">
+                                <div class="theme-toggle-slider"></div>
+                            </div>
+                            <div>
+                                <div class="theme-toggle-label">Dark Text Mode</div>
+                                <div class="theme-toggle-description">Switch panels to use dark text on light backgrounds for better readability</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-section">
+                        <h3>Cursor Effects</h3>
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="enableLaserTrail" checked>
+                                <span class="toggle-label">Laser Trail Effect</span>
+                            </label>
+                        </div>
+                        
+                        <div class="cursor-settings">
+                            <label>Trail Color:</label>
+                            <select id="trailColor">
+                                <option value="cyan">Cyan</option>
+                                <option value="purple">Purple</option>
+                                <option value="green">Green</option>
+                                <option value="red">Red</option>
+                                <option value="yellow">Yellow</option>
+                                <option value="rainbow">Rainbow</option>
+                            </select>
+                            
+                            <label>Trail Intensity:</label>
+                            <input type="range" id="trailIntensity" min="1" max="10" value="5">
+                            <span id="trailIntensityValue">5</span>
+                            
+                            <label>Trail Length:</label>
+                            <input type="range" id="trailLength" min="5" max="50" value="20">
+                            <span id="trailLengthValue">20</span>
+                        </div>
+                        
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="enableClickEffects" checked>
+                                <span class="toggle-label">Click Visual Effects</span>
+                            </label>
+                        </div>
+                        
+                        <div class="toggle-setting">
+                            <label>
+                                <input type="checkbox" id="enableClickSounds" checked>
+                                <span class="toggle-label">Click Sound Effects</span>
+                            </label>
+                        </div>
+                        
+                        <div class="cursor-settings">
+                            <label>Click Effect Style:</label>
+                            <select id="clickEffectStyle">
+                                <option value="ripple">Ripple</option>
+                                <option value="explosion">Explosion</option>
+                                <option value="sparkle">Sparkle</option>
+                                <option value="pulse">Pulse</option>
+                            </select>
+                            
+                            <label>Sound Volume:</label>
+                            <input type="range" id="soundVolume" min="0" max="100" value="30">
+                            <span id="soundVolumeValue">30%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Text Control Panel -->
+        <div class="text-display-panel" id="textDisplayPanel">
+            <div class="text-panel-header">
+                <div class="text-panel-title">📝 Text Display Manager</div>
+                <div class="text-header-controls">
+                    <button class="text-control-collapse" id="textPanelCollapse" title="Collapse">−</button>
+                    <button class="text-control-close" id="textPanelClose" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="text-panel-content">
+                <div class="text-section">
+                    <h4>Text Content</h4>
+                    <textarea id="textContent" placeholder="Enter your text content here..." rows="3"></textarea>
+                    <div class="text-quick-presets">
+                        <button class="preset-text-btn" data-text="Welcome to my stream!">Welcome</button>
+                        <button class="preset-text-btn" data-text="Thanks for watching!">Thanks</button>
+                        <button class="preset-text-btn" data-text="Like & Subscribe!">Subscribe</button>
+                    </div>
+                </div>
+                
+                <div class="text-section">
+                    <h4>Display Settings</h4>
+                    <div class="text-property-row">
+                        <label>Position:</label>
+                        <select id="textPosition">
+                            <option value="top-center">Top Center</option>
+                            <option value="top-left">Top Left</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="center">Center</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                        </select>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Font Size:</label>
+                        <input type="range" id="textFontSize" min="12" max="120" value="32">
+                        <span class="text-property-value" id="fontSizeValue">32px</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Display Time:</label>
+                        <input type="range" id="textDisplayTime" min="1" max="30" value="5">
+                        <span class="text-property-value" id="displayTimeValue">5s</span>
+                    </div>
+                </div>
+
+                <div class="text-section">
+                    <h4>Text Effects</h4>
+                    <div class="text-property-row">
+                        <label>Animation:</label>
+                        <select id="textAnimation">
+                            <option value="none">None</option>
+                            <option value="fade">Fade In/Out</option>
+                            <option value="slide-up">Slide Up</option>
+                            <option value="slide-down">Slide Down</option>
+                            <option value="bounce">Bounce</option>
+                            <option value="typewriter">Typewriter</option>
+                            <option value="glow-pulse">Glow Pulse</option>
+                        </select>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Shadow Blur:</label>
+                        <input type="range" id="textShadowBlur" min="0" max="20" value="4">
+                        <span class="text-property-value" id="shadowBlurValue">4px</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Glow Intensity:</label>
+                        <input type="range" id="textGlowIntensity" min="0" max="50" value="10">
+                        <span class="text-property-value" id="glowIntensityValue">10px</span>
+                    </div>
+                </div>
+
+                <div class="text-section">
+                    <h4>Font & Style</h4>
+                    <div class="text-property-row">
+                        <label>Font Family:</label>
+                        <select id="textFontFamily">
+                            <option value="Inter">Inter</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Courier New">Courier New</option>
+                            <option value="Impact">Impact</option>
+                        </select>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Font Weight:</label>
+                        <select id="textFontWeight">
+                            <option value="300">Light</option>
+                            <option value="400">Normal</option>
+                            <option value="600">Semi-Bold</option>
+                            <option value="700">Bold</option>
+                            <option value="900">Black</option>
+                        </select>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Text Color:</label>
+                        <input type="color" id="textColor" value="#ffffff">
+                    </div>
+                </div>
+
+                <div class="text-section">
+                    <h4>Color & Effects</h4>
+                    <div class="text-property-row">
+                        <label>Background:</label>
+                        <input type="color" id="textBackgroundColor" value="#000000">
+                    </div>
+                    <div class="text-property-row">
+                        <label>Background Opacity:</label>
+                        <input type="range" id="textBackgroundOpacity" min="0" max="100" value="50">
+                        <span class="text-property-value" id="bgOpacityValue">50%</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Border Radius:</label>
+                        <input type="range" id="textBorderRadius" min="0" max="50" value="8">
+                        <span class="text-property-value" id="borderRadiusValue">8px</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Stroke Width:</label>
+                        <input type="range" id="textStrokeWidth" min="0" max="10" value="0">
+                        <span class="text-property-value" id="strokeWidthValue">0px</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Stroke Color:</label>
+                        <input type="color" id="textStrokeColor" value="#000000">
+                    </div>
+                </div>
+
+                <div class="text-section">
+                    <h4>Voice & Speech</h4>
+                    <div class="text-property-row">
+                        <label>Voice Type:</label>
+                        <select id="textVoice">
+                            <option value="user-clone">Your Voice (Clone)</option>
+                            <option value="robotic">Robotic Voice</option>
+                            <option value="cool-male">Cool Male</option>
+                            <option value="cool-female">Cool Female</option>
+                            <option value="narrator">Narrator</option>
+                            <option value="whisper">Whisper</option>
+                            <option value="echo">Echo Effect</option>
+                            <option value="en-male">English Male</option>
+                            <option value="en-female">English Female</option>
+                            <option value="es-male">Spanish Male</option>
+                            <option value="es-female">Spanish Female</option>
+                            <option value="fr-male">French Male</option>
+                            <option value="fr-female">French Female</option>
+                        </select>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Speech Speed:</label>
+                        <input type="range" id="speechSpeed" min="0.5" max="2" step="0.1" value="1">
+                        <span class="text-property-value" id="speechSpeedValue">1x</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Speech Volume:</label>
+                        <input type="range" id="speechVolume" min="0" max="100" value="70">
+                        <span class="text-property-value" id="speechVolumeValue">70%</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>Voice Pitch:</label>
+                        <input type="range" id="speechPitch" min="0.5" max="2" step="0.1" value="1">
+                        <span class="text-property-value" id="speechPitchValue">1x</span>
+                    </div>
+                    <div class="text-property-row">
+                        <label>
+                            <input type="checkbox" id="textSpeakWithDisplay"> Auto-speak when displaying text
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-section">
+                    <h4>Voice Effects</h4>
+                    <div class="text-property-row">
+                        <label>
+                            <input type="checkbox" id="textAddEcho"> Add Echo Effect
+                        </label>
+                    </div>
+                    <div class="text-property-row">
+                        <label>
+                            <input type="checkbox" id="textAddReverb"> Add Reverb
+                        </label>
+                    </div>
+                    <div class="text-property-row">
+                        <label>
+                            <input type="checkbox" id="textEnhanceClarity"> Enhance Clarity
+                        </label>
+                    </div>
+                </div>
+
+                <div class="text-section">
+                    <h4>Preview</h4>
+                    <div class="text-preview" id="textPreview">Your text will appear here</div>
+                </div>
+            </div>
+            <div class="text-panel-actions">
+                <button class="text-action-btn primary" id="showTextBtn">Show Text</button>
+                <button class="text-action-btn secondary" id="speakTextBtn">🔊 Speak</button>
+                <button class="text-action-btn" id="previewTextBtn">👁 Preview</button>
+                <button class="text-action-btn" id="saveTextBtn">💾 Save</button>
+                <button class="text-action-btn" id="loadTextBtn">📁 Load</button>
+            </div>
+        </div>
+
+        <!-- Image Control Panel -->
+        <div class="image-display-panel" id="imageDisplayPanel">
+            <div class="image-panel-header">
+                <div class="image-panel-title">🖼️ Image Display Manager</div>
+                <div class="image-header-controls">
+                    <button class="image-control-collapse" id="imagePanelCollapse" title="Collapse">−</button>
+                    <button class="image-control-close" id="imagePanelClose" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="image-panel-content">
+                <div class="image-section">
+                    <h4>Image Source</h4>
+                    <div class="image-source-controls">
+                        <input type="file" id="imageFileInput" accept="image/*,video/*,audio/*" style="display: none;">
+                        <button class="image-source-btn" id="imageFileBrowse">📁 Browse Files</button>
+                        <input type="url" id="imageUrlInput" placeholder="Or enter image URL..." />
+                        <button class="image-source-btn" id="aiGenerateBtn">✨ AI Generate</button>
+                    </div>
+                    <div class="image-preview-container">
+                        <div class="image-preview" id="imagePreview">No image selected</div>
+                    </div>
+                </div>
+
+                <div class="image-section" id="aiGeneratorSection" style="display: none;">
+                    <h4>🤖 AI Image Generator</h4>
+                    <div class="ai-generator-content">
+                        <div class="ai-preset-section">
+                            <label>Streaming Effects Presets:</label>
+                            <div class="ai-preset-grid">
+                                <button class="ai-preset-btn" data-effect="explosion">💥 Explosion</button>
+                                <button class="ai-preset-btn" data-effect="boom">💢 Boom</button>
+                                <button class="ai-preset-btn" data-effect="sparkle">✨ Sparkle</button>
+                                <button class="ai-preset-btn" data-effect="fire">🔥 Fire</button>
+                                <button class="ai-preset-btn" data-effect="lightning">⚡ Lightning</button>
+                                <button class="ai-preset-btn" data-effect="smoke">💨 Smoke</button>
+                                <button class="ai-preset-btn" data-effect="confetti">🎊 Confetti</button>
+                                <button class="ai-preset-btn" data-effect="hearts">💕 Hearts</button>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-custom-section">
+                            <label>Custom Prompt:</label>
+                            <textarea id="aiCustomPrompt" placeholder="Describe your streaming effect or image..."></textarea>
+                        </div>
+                        
+                        <div class="ai-settings-section">
+                            <div class="ai-property-row">
+                                <label>Animation Type:</label>
+                                <select id="aiAnimationType">
+                                    <option value="static">Static Image</option>
+                                    <option value="animated">Animated</option>
+                                </select>
+                            </div>
+                            <div class="ai-property-row">
+                                <label>Style:</label>
+                                <select id="aiStyle">
+                                    <option value="cartoon">Cartoon</option>
+                                    <option value="realistic">Realistic</option>
+                                    <option value="neon">Neon</option>
+                                    <option value="minimal">Minimal</option>
+                                    <option value="glitch">Glitch</option>
+                                    <option value="retro">Retro Gaming</option>
+                                </select>
+                            </div>
+                            <div class="ai-property-row">
+                                <label>Size:</label>
+                                <select id="aiImageSize">
+                                    <option value="256x256">256×256 (Small)</option>
+                                    <option value="512x512" selected>512×512 (Medium)</option>
+                                    <option value="768x768">768×768 (Large)</option>
+                                    <option value="1024x1024">1024×1024 (XL)</option>
+                                </select>
+                            </div>
+                            <div class="ai-property-row" id="animationDurationRow" style="display: none;">
+                                <label>Duration:</label>
+                                <input type="range" id="aiAnimationDuration" min="0.5" max="5" step="0.5" value="2">
+                                <span class="ai-property-value" id="animationDurationValue">2s</span>
+                            </div>
+                            <div class="ai-property-row">
+                                <label>Transparency:</label>
+                                <input type="checkbox" id="aiTransparency" checked>
+                            </div>
+                        </div>
+                        
+                        <div class="ai-generation-controls">
+                            <button class="ai-action-btn primary" id="generateImageBtn">🎨 Generate</button>
+                            <button class="ai-action-btn secondary" id="regenerateBtn" style="display: none;">🔄 Regenerate</button>
+                            <button class="ai-action-btn" id="saveGeneratedBtn" style="display: none;">💾 Save As...</button>
+                        </div>
+                        
+                        <div class="ai-generation-status" id="aiGenerationStatus" style="display: none;">
+                            <div class="generation-progress"></div>
+                            <span class="generation-text">Generating your streaming effect...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="image-section">
+                    <h4>Size & Position</h4>
+                    <div class="image-property-row">
+                        <label>Width:</label>
+                        <input type="range" id="imageWidth" min="50" max="800" value="300">
+                        <span class="image-property-value" id="widthValue">300px</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Height:</label>
+                        <input type="range" id="imageHeight" min="50" max="600" value="200">
+                        <span class="image-property-value" id="heightValue">200px</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Position:</label>
+                        <select id="imagePosition">
+                            <option value="top-center">Top Center</option>
+                            <option value="top-left">Top Left</option>
+                            <option value="top-right">Top Right</option>
+                            <option value="center">Center</option>
+                            <option value="bottom-left">Bottom Left</option>
+                            <option value="bottom-center">Bottom Center</option>
+                            <option value="bottom-right">Bottom Right</option>
+                        </select>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Scale:</label>
+                        <input type="range" id="imageScale" min="10" max="300" value="100">
+                        <span class="image-property-value" id="scaleValue">100%</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Rotation:</label>
+                        <input type="range" id="imageRotation" min="-180" max="180" value="0">
+                        <span class="image-property-value" id="rotationValue">0°</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Display Time:</label>
+                        <input type="range" id="imageDisplayTime" min="1" max="30" value="5">
+                        <span class="image-property-value" id="imageDisplayTimeValue">5s</span>
+                    </div>
+                </div>
+
+                <div class="image-section">
+                    <h4>Appearance</h4>
+                    <div class="image-property-row">
+                        <label>Opacity:</label>
+                        <input type="range" id="imageOpacity" min="10" max="100" value="100">
+                        <span class="image-property-value" id="opacityValue">100%</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Border Radius:</label>
+                        <input type="range" id="imageBorderRadius" min="0" max="50" value="8">
+                        <span class="image-property-value" id="imageBorderRadiusValue">8px</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Shadow Blur:</label>
+                        <input type="range" id="imageShadowBlur" min="0" max="30" value="10">
+                        <span class="image-property-value" id="imageShadowBlurValue">10px</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Border Width:</label>
+                        <input type="range" id="imageBorderWidth" min="0" max="20" value="0">
+                        <span class="image-property-value" id="imageBorderWidthValue">0px</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Border Color:</label>
+                        <input type="color" id="imageBorderColor" value="#ffffff">
+                    </div>
+                </div>
+
+                <div class="image-section">
+                    <h4>Effects</h4>
+                    <div class="image-property-row">
+                        <label>Blur:</label>
+                        <input type="range" id="imageBlur" min="0" max="20" value="0">
+                        <span class="image-property-value" id="imageBlurValue">0px</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Brightness:</label>
+                        <input type="range" id="imageBrightness" min="0" max="200" value="100">
+                        <span class="image-property-value" id="imageBrightnessValue">100%</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Contrast:</label>
+                        <input type="range" id="imageContrast" min="0" max="200" value="100">
+                        <span class="image-property-value" id="imageContrastValue">100%</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Saturation:</label>
+                        <input type="range" id="imageSaturation" min="0" max="200" value="100">
+                        <span class="image-property-value" id="imageSaturationValue">100%</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Hue Rotate:</label>
+                        <input type="range" id="imageHueRotate" min="0" max="360" value="0">
+                        <span class="image-property-value" id="imageHueRotateValue">0°</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Grayscale:</label>
+                        <input type="range" id="imageGrayscale" min="0" max="100" value="0">
+                        <span class="image-property-value" id="imageGrayscaleValue">0%</span>
+                    </div>
+                </div>
+
+                <div class="image-section">
+                    <h4>Animation</h4>
+                    <div class="image-property-row">
+                        <label>Animation:</label>
+                        <select id="imageAnimation">
+                            <option value="none">None</option>
+                            <option value="fade">Fade In/Out</option>
+                            <option value="slide-up">Slide Up</option>
+                            <option value="slide-down">Slide Down</option>
+                            <option value="zoom-in">Zoom In</option>
+                            <option value="spin">Spin</option>
+                            <option value="bounce">Bounce</option>
+                            <option value="pulse">Pulse</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="image-section">
+                    <h4>Sound</h4>
+                    <div class="image-sound-controls">
+                        <input type="file" id="imageSoundInput" accept="audio/*" style="display: none;">
+                        <button class="image-sound-btn" id="imageSoundBrowse">🔊 Browse Sound</button>
+                        <input type="url" id="imageSoundUrlInput" placeholder="Or enter sound URL..." />
+                        <div class="image-sound-info" id="imageSoundInfo">No sound selected</div>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Progress:</label>
+                        <input type="range" id="imageSoundProgress" min="0" max="100" value="0">
+                        <span class="image-property-value" id="imageSoundDuration">0:00 / 0:00</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>Sound Volume:</label>
+                        <input type="range" id="imageSoundVolume" min="0" max="100" value="70">
+                        <span class="image-property-value" id="imageSoundVolumeValue">70%</span>
+                    </div>
+                    <div class="image-property-row">
+                        <label>
+                            <input type="checkbox" id="imageSoundLoop"> Loop Sound
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="image-panel-actions">
+                <button class="image-action-btn primary" id="showImageBtn">Show Image</button>
+                <button class="image-action-btn secondary" id="previewImageBtn">👁 Preview</button>
+                <button class="image-action-btn" id="saveImageBtn">💾 Save</button>
+                <button class="image-action-btn" id="loadImageBtn">📁 Load</button>
+                <button class="image-action-btn danger" id="removeImageBtn">🗑 Remove</button>
+            </div>
+        </div>
+
+        <!-- Voice Recorder Panel -->
+        <div class="voice-recorder-panel" id="voiceRecorderPanel">
+            <div class="voice-panel-header">
+                <div class="voice-panel-title">🎙️ AI Voice Recorder</div>
+                <div class="voice-header-controls">
+                    <button class="voice-control-collapse" id="voicePanelCollapse" title="Collapse">−</button>
+                    <button class="voice-control-close" id="voicePanelClose" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="voice-panel-content">
+                <div class="voice-section">
+                    <h4>Recording</h4>
+                    <div class="voice-recording-controls">
+                        <button class="voice-record-btn" id="voiceRecordBtn">
+                            <span class="voice-btn-icon">🎙️</span>
+                            <span class="voice-btn-text">Start Recording</span>
+                        </button>
+                        <div class="voice-recording-status" id="voiceRecordingStatus">Ready to record</div>
+                        <div class="voice-recording-timer" id="voiceRecordingTimer" style="display: none;">00:00</div>
+                    </div>
+                    
+                    <!-- @tweakable voice cloning progress section to track recording quality -->
+                    <div class="voice-cloning-progress" id="voiceCloningProgress">
+                        <div class="cloning-progress-header">
+                            <span class="cloning-status" id="voiceCloningStatus">Voice Cloning: 0%</span>
+                            <span class="cloning-quality" id="voiceCloningQuality">Need more samples</span>
+                        </div>
+                        <div class="cloning-progress-bar-container">
+                            <div class="cloning-progress-bar" id="voiceCloningProgressBar"></div>
+                        </div>
+                        <div class="cloning-progress-info">
+                            <small>Record at least 30s across multiple samples for voice cloning</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="voice-section">
+                    <h4>Transcription</h4>
+                    <textarea id="voiceTranscriptionText" placeholder="Transcribed text will appear here..." rows="4"></textarea>
+                    <div class="voice-transcription-controls">
+                        <button class="voice-action-btn secondary" id="voiceEditTextBtn">✏️ Edit Text</button>
+                        <button class="voice-action-btn secondary" id="voiceClearTextBtn">🗑️ Clear</button>
+                    </div>
+                </div>
+
+                <div class="voice-section">
+                    <h4>Voice Settings</h4>
+                    <div class="voice-property-row">
+                        <label>Voice Type:</label>
+                        <select id="voiceType">
+                            <option value="user-clone">Your Voice (Clone)</option>
+                            <option value="robotic">Robotic Voice</option>
+                            <option value="cool-male">Cool Male</option>
+                            <option value="cool-female">Cool Female</option>
+                            <option value="narrator">Narrator</option>
+                            <option value="whisper">Whisper</option>
+                            <option value="echo">Echo Effect</option>
+                        </select>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>Voice Speed:</label>
+                        <input type="range" id="voiceSpeed" min="0.5" max="2" step="0.1" value="1">
+                        <span class="voice-property-value" id="voiceSpeedValue">1x</span>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>Voice Volume:</label>
+                        <input type="range" id="voiceVolume" min="0" max="100" value="80">
+                        <span class="voice-property-value" id="voiceVolumeValue">80%</span>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>Voice Pitch:</label>
+                        <input type="range" id="voicePitch" min="0.5" max="2" step="0.1" value="1">
+                        <span class="voice-property-value" id="voicePitchValue">1x</span>
+                    </div>
+                </div>
+
+                <div class="voice-section" w-tid="1151">
+                    <h4 w-tid="1153">Preview & Effects</h4>
+                    <div class="voice-preview-controls">
+                        <button class="voice-action-btn secondary" id="voicePreviewBtn">🎙️ Preview Recorded Voice</button>
+                        <button class="voice-action-btn secondary" id="voiceStopPreviewBtn" style="display: none;">⏹️ Stop</button>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>
+                            <input type="checkbox" id="voiceAddEcho"> Add Echo Effect
+                        </label>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>
+                            <input type="checkbox" id="voiceAddReverb"> Add Reverb
+                        </label>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>
+                            <input type="checkbox" id="voiceEnhanceClarity"> Enhance Clarity
+                        </label>
+                    </div>
+                </div>
+
+                <div class="voice-section">
+                    <h4>Sound</h4>
+                    <div class="voice-sound-controls">
+                        <input type="file" id="voiceSoundInput" accept="audio/*" style="display: none;">
+                        <button class="voice-sound-btn" id="voiceSoundBrowse">🔊 Browse Sound</button>
+                        <div class="voice-sound-info" id="voiceSoundInfo">No sound selected</div>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>Progress:</label>
+                        <input type="range" id="voiceSoundProgress" min="0" max="100" value="0">
+                        <span class="voice-property-value" id="voiceSoundDuration">0:00 / 0:00</span>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>Sound Volume:</label>
+                        <input type="range" id="voiceSoundVolume" min="0" max="100" value="70">
+                        <span class="voice-property-value" id="voiceSoundVolumeValue">70%</span>
+                    </div>
+                    <div class="voice-property-row">
+                        <label>
+                            <input type="checkbox" id="voiceSoundLoop"> Loop Sound
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="voice-panel-actions">
+                <button class="voice-action-btn primary" id="voiceSaveToActiveBtn">💾 Save to Active</button>
+                <button class="voice-action-btn secondary" id="voiceExportBtn">📤 Export Audio</button>
+                <button class="voice-action-btn" id="voiceSettingsBtn">⚙️ Settings</button>
+            </div>
+        </div>
+          <!-- Smart Redactor Control Panel -->
+        <div class="smart-redactor-panel" id="smartRedactorPanel">
+            <div class="smart-redactor-header">
+                <div class="smart-redactor-title">🤖 AI Smart Redactor</div>
+                <div class="redactor-header-controls">
+                    <button class="redactor-control-collapse" id="redactorPanelCollapse" title="Collapse">−</button>
+                    <button class="redactor-control-close" id="redactorPanelClose" title="Close">✕</button>
+                </div>
+            </div>
+            <div class="smart-redactor-content">
+                <div class="redactor-section">
+                    <h4>Content Analysis</h4>
+                    <div class="analysis-controls">
+                        <button class="redactor-action-btn secondary" id="analyzeContentBtn">📊 Analyze Current Content</button>
+                        <button class="redactor-action-btn secondary" id="uploadFilesBtn" onclick="document.querySelector('input[type=file]').click()">📁 Upload Files/Docs</button>
+                        <div class="analysis-status" id="analysisStatus">Ready to analyze</div>
+                    </div>
+                    <div class="content-summary" id="contentSummary"></div>
+                </div>
+                
+                <div class="redactor-section">
+                    <h4>AI Text Generation</h4>
+                    <div class="redactor-property-row">
+                        <label>Content Type:</label>
+                        <select id="contentType">
+                            <option value="presentation">Presentation Script</option>
+                            <option value="tutorial">Tutorial Guide</option>
+                            <option value="demo">Demo Narration</option>
+                            <option value="review">Review Commentary</option>
+                            <option value="stream">Stream Commentary</option>
+                            <option value="custom">Custom Content</option>
+                        </select>
+                    </div>
+                    <div class="redactor-property-row">
+                        <label>Tone:</label>
+                        <select id="contentTone">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="friendly">Friendly</option>
+                            <option value="enthusiastic">Enthusiastic</option>
+                            <option value="educational">Educational</option>
+                        </select>
+                    </div>
+                    <div class="redactor-property-row">
+                        <label>Length:</label>
+                        <select id="contentLength">
+                            <option value="brief">Brief (1-2 min)</option>
+                            <option value="medium">Medium (3-5 min)</option>
+                            <option value="detailed">Detailed (5+ min)</option>
+                        </select>
+                    </div>
+                    <textarea id="customPrompt" placeholder="Enter custom prompt or specific requirements..." rows="3"></textarea>
+                    <button class="redactor-action-btn primary" id="generateTextBtn">✨ Generate Content</button>
+                </div>
+                
+                <div class="redactor-section">
+                    <h4>Generated Content</h4>
+                    <div class="content-editor">
+                        <textarea id="generatedContent" placeholder="AI-generated content will appear here..." rows="8"></textarea>
+                        <div class="editor-tools">
+                            <button class="editor-btn" id="improveTextBtn" title="Improve Text">📝</button>
+                            <button class="editor-btn" id="shortenTextBtn" title="Shorten">✂️</button>
+                            <button class="editor-btn" id="expandTextBtn" title="Expand">➕</button>
+                            <button class="editor-btn" id="changeStyleBtn" title="Change Style">🎭</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="redactor-section">
+                    <h4>Streaming Tools</h4>
+                    <div class="streaming-tools">
+                        <button class="tool-btn" id="keyPointsBtn">🎯 Extract Key Points</button>
+                        <button class="tool-btn" id="timestampsBtn">⏰ Create Timestamps</button>
+                        <button class="tool-btn" id="callToActionBtn">📢 Add Call-to-Actions</button>
+                        <button class="tool-btn" id="transitionsBtn">🔄 Add Transitions</button>
+                    </div>
+                </div>
+            </div>
+            <div class="smart-redactor-actions">
+                <button class="redactor-action-btn primary" id="createVignetteBtn">📋 Create Reading Vignette</button>
+                <button class="redactor-action-btn secondary" id="saveRedactorBtn">💾 Save Content</button>
+                <button class="redactor-action-btn" id="loadRedactorBtn">📁 Load Content</button>
+                <button class="redactor-action-btn danger" id="removeContentBtn">🗑 Remove All</button>
+            </div>
+        </div>
+
+        <!-- Reading Vignette -->
+        <div class="reading-vignette" id="readingVignette" style="display: none;">
+            <div class="vignette-header">
+                <div class="vignette-title">📖 Reading Guide</div>
+                <div class="vignette-controls" w-tid="1257">
+                    <button class="vignette-btn" id="vignettePlay" title="Play Text-to-Speech">▶️</button>
+                    <button class="vignette-btn" id="vignetteStop" title="Stop Speaking">⏹️</button>
+                    <button class="vignette-btn" id="vignettePin" title="Pin/Unpin" w-tid="1259">📌</button>
+                    <button class="vignette-btn" id="vignetteCollapse" title="Collapse" w-tid="1261">−</button>
+                    <button class="vignette-btn" id="vignetteClose" title="Close" w-tid="1263">✕</button>
+                </div>
+            </div>
+            <div class="vignette-content" id="vignetteContent">
+                <div class="reading-text" id="readingText">Your generated content will appear here for easy reading while recording.</div>
+                <div class="reading-progress">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Main Content Area -->
+        <div class="content-area">
+            <div class="content-container" id="contentContainer">
+                <!-- Camera Overlay -->
+                <div class="camera-overlay" id="cameraOverlay">
+                    <video id="cameraVideo" autoplay muted playsinline></video>
+                    <div class="camera-controls-mini">
+                        <button id="toggleCamera" title="Toggle Camera">
+                            <i class="fas fa-video"></i>
+                        </button>
+                        <button id="toggleMic" title="Toggle Microphone">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="dragHandle" title="Drag to move" class="drag-handle">
+                            <i class="fas fa-arrows-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Content Display -->
+                <div class="content-display" id="contentDisplay">
+                    <div class="welcome-screen">
+                        <div class="welcome-content">
+                            <i class="fas fa-globe"></i>
+                            <h2>Welcome to Streaming Studio</h2>
+                            <p>Load a website or content link to begin</p>
+                            <div class="feature-list">
+                                <div class="feature">
+                                    <i class="fas fa-video"></i>
+                                    <span>Camera Overlay</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-microphone"></i>
+                                    <span>Audio Recording</span>
+                                </div>
+                                <div class="feature">
+                                    <i class="fas fa-desktop"></i>
+                                    <span>Screen Capture Ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <iframe id="contentFrame" style="display: none;"></iframe>
+                </div>
+
+                <!-- Audio Visualizer -->
+                <canvas id="audioVisualizer" class="audio-visualizer"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

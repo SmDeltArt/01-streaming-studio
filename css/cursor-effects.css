@@ -1,0 +1,219 @@
+/* Cursor Effects */
+.laser-trail-particle {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    mix-blend-mode: screen;
+    animation: fadeTrail 0.6s ease-out forwards;
+}
+
+.laser-trail-particle.cyan {
+    background: radial-gradient(circle, #00ffff 0%, transparent 70%);
+    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+}
+
+.laser-trail-particle.purple {
+    background: radial-gradient(circle, #ff00ff 0%, transparent 70%);
+    box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+}
+
+.laser-trail-particle.green {
+    background: radial-gradient(circle, #00ff00 0%, transparent 70%);
+    box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00;
+}
+
+.laser-trail-particle.red {
+    background: radial-gradient(circle, #ff0000 0%, transparent 70%);
+    box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+}
+
+.laser-trail-particle.yellow {
+    background: radial-gradient(circle, #ffff00 0%, transparent 70%);
+    box-shadow: 0 0 10px #ffff00, 0 0 20px #ffff00;
+}
+
+.laser-trail-particle.rainbow {
+    background: radial-gradient(circle, 
+        hsl(var(--rainbow-hue), 100%, 50%) 0%, 
+        transparent 70%);
+    box-shadow: 0 0 10px hsl(var(--rainbow-hue), 100%, 50%);
+    animation: fadeTrail 0.6s ease-out forwards, rainbowShift 1s linear infinite;
+}
+
+@keyframes fadeTrail {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+}
+
+@keyframes rainbowShift {
+    0% { --rainbow-hue: 0; }
+    100% { --rainbow-hue: 360; }
+}
+
+/* Click Effects */
+.click-effect {
+    position: fixed;
+    pointer-events: none;
+    z-index: 10000;
+}
+
+.click-effect.ripple {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #00ffff;
+    border-radius: 50%;
+    animation: rippleExpand 0.6s ease-out forwards;
+}
+
+.click-effect.explosion {
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, #ff6b6b 0%, transparent 70%);
+    border-radius: 50%;
+    animation: explosionEffect 0.4s ease-out forwards;
+}
+
+.click-effect.sparkle {
+    width: 30px;
+    height: 30px;
+    animation: sparkleEffect 0.8s ease-out forwards;
+}
+
+.click-effect.sparkle::before,
+.click-effect.sparkle::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    background: #ffff00;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px #ffff00;
+}
+
+.click-effect.sparkle::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.click-effect.pulse {
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle, rgba(102, 126, 234, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulseEffect 0.5s ease-out forwards;
+}
+
+@keyframes rippleExpand {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+    }
+}
+
+@keyframes explosionEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+@keyframes sparkleEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2) rotate(180deg);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes pulseEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+/* Cursor Settings */
+.cursor-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.control-panel.collapsed .cursor-settings {
+    display: none;
+}
+
+.cursor-settings label {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.cursor-settings select,
+.cursor-settings input[type="range"] {
+    padding: 6px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    backdrop-filter: blur(5px);
+    font-size: 12px;
+}
+
+.cursor-settings select option {
+    background: #2d3748;
+    color: #ffffff;
+}
+
+.cursor-settings select:focus,
+.cursor-settings input[type="range"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.cursor-settings span {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-left: 8px;
+}
