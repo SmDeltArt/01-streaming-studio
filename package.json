@@ -1,0 +1,16 @@
+﻿{
+  "name": "01-streaming-studio",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "SmΔrt Streaming Studio — static site with minimal tests",
+  "scripts": {
+    "test": "vitest run --reporter=basic",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0",
+    "vitest": "^1.6.0"
+  },
+  "engines": { "node": ">=18" }
+}
