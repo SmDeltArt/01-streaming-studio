@@ -7,14 +7,19 @@ export default class AudioManager {
     }
     
     setupAudioVisualization(mediaStream) {
-        if (!mediaStream || !this.audioContext) {
+        // Only initialize when we actually have a media stream and the
+        // audio context hasn't been created yet. The previous implementation
+        // used a logical OR which attempted to initialize even when the
+        // media stream was missing, leading to runtime errors when trying to
+        // create a MediaStreamSource with `null`.
+        if (mediaStream && !this.audioContext) {
             try {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 const source = this.audioContext.createMediaStreamSource(mediaStream);
                 this.analyser = this.audioContext.createAnalyser();
                 this.analyser.fftSize = 256;
                 source.connect(this.analyser);
-                
+
                 this.drawAudioVisualization();
                 this.audioVisualizer.style.display = 'block';
             } catch (error) {
