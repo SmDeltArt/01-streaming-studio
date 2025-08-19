@@ -63,9 +63,14 @@ export default class RecordingManager {
         console.log(`Recording settings updated: ${frameRate}fps, ${format} format`);
     }
     
-        async togglePause() {
+    async togglePause() {
         if (!this.isRecording || !this.mediaRecorder) return;
-        
+
+        if (!this.pauseBtn) {
+            console.warn('Pause button not found');
+            return;
+        }
+
         if (this.isPaused) {
             // Resume recording
             this.mediaRecorder.resume();
