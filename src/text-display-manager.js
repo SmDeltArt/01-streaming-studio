@@ -152,11 +152,14 @@ if (key === 't' && !(e.target && e.target.matches && e.target.matches('input, te
                     e.preventDefault();
                 }
             });
-        } catch (error) {}
+    } catch (error) {}
     }
 
     setupDragging() {
+        if (!this.textPanel) return;
+
         const header = this.textPanel.querySelector('.text-panel-header');
+        if (!header) return;
         let isDragging = false;
         let startX, startY, initialX, initialY;
         header.addEventListener('mousedown', (e) => {
