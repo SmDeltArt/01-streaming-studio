@@ -1,0 +1,42 @@
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .content-area {
+        margin-right: 120px;
+    }
+    
+    .control-panel {
+        width: 100px;
+    }
+    
+    .control-panel:not(.collapsed) {
+        width: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .control-panel {
+        top: 60px;
+        right: 10px;
+        width: 80px;
+    }
+    
+    .control-panel:not(.collapsed) {
+        width: 260px;
+    }
+    
+    .content-area {
+        margin-right: 100px;
+    }
+    
+    .app-container {
+        padding: 10px;
+    }
+    
+    #controls-toggle {
+        left: -12px;
+        width: 24px;
+        height: 24px;
+        font-size: 14px;
+    }
+}
+

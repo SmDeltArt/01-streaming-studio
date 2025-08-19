@@ -1,13 +1,13 @@
 // Import managers
-import CameraManager from './js/camera-manager.js';
-import RecordingManager from './js/recording-manager.js';
-import UIManager from './js/ui-manager.js';
-import AudioManager from './js/audio-manager.js';
-import CursorEffectsManager from './js/cursor-effects-manager.js';
-import TextDisplayManager from './js/text-display-manager.js';
-import ImageDisplayManager from './js/image-display-manager.js';
-import SmartRedactorManager from './js/smartRedactor.js';
-import VoiceRecorderManager from './js/voice-recorder-manager.js';
+import CameraManager from './src/camera-manager.js';
+import RecordingManager from './src/recording-manager.js';
+import UIManager from './src/ui-manager.js';
+import AudioManager from './src/audio-manager.js';
+import CursorEffectsManager from './src/cursor-effects-manager.js';
+import TextDisplayManager from './src/text-display-manager.js';
+import ImageDisplayManager from './src/image-display-manager.js';
+import SmartRedactorManager from './src/smartRedactor.js';
+import VoiceRecorderManager from './src/voice-recorder-manager.js';
 
 class StreamingStudio {
     constructor() {
