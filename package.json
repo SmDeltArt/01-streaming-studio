@@ -1,9 +1,9 @@
-﻿{
+{
   "name": "01-streaming-studio",
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "SmΔrt Streaming Studio — static site with minimal tests",
+  "description": "SmDeltArt Streaming Studio — static site with minimal tests",
   "scripts": {
     "test": "vitest run --reporter=basic",
     "test:watch": "vitest"
