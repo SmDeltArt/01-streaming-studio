@@ -1,4 +1,4 @@
-/** @type {import('vitest/config').UserConfig} */
+﻿/** @type {import('vitest/config').UserConfig} */
 const { defineConfig } = require('vitest/config');
 
 module.exports = defineConfig({
