@@ -95,6 +95,8 @@
     overflow-y: auto;
 }
 
+.text-display-panel.collapsed .text-panel-header,
+
 .text-display-panel.collapsed .text-panel-content {
     display: none;
 }
@@ -411,6 +413,9 @@
     max-height: 60vh;
     overflow-y: auto;
 }
+
+
+.image-display-panel.collapsed .image-panel-header,
 
 .image-display-panel.collapsed .image-panel-content {
     display: none;
@@ -853,6 +858,9 @@
     max-height: 60vh;
     overflow-y: auto;
 }
+
+
+.voice-recorder-panel.collapsed .voice-panel-header,
 
 .voice-recorder-panel.collapsed .voice-panel-content {
     display: none;
@@ -1911,6 +1919,9 @@
     max-height: 60vh;
     overflow-y: auto;
 }
+
+
+.smart-redactor-panel.collapsed .smart-redactor-header,
 
 .smart-redactor-panel.collapsed .smart-redactor-content {
     display: none;
