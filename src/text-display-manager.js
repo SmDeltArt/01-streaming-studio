@@ -23,6 +23,7 @@ export default class TextDisplayManager {
         if (this.textPanel) this.textPanel.classList.add('ai-scope');
         this.textPanelCollapse = document.getElementById('textPanelCollapse');
         this.textPanelClose = document.getElementById('textPanelClose');
+        this.textPanelExpand = document.getElementById('textPanelExpand');
         this.textContent = document.getElementById('textContent');
         this.textPosition = document.getElementById('textPosition');
         this.textFontSize = document.getElementById('textFontSize');
@@ -73,6 +74,9 @@ export default class TextDisplayManager {
             this.textBtn.addEventListener('click', () => this.togglePanel());
             if (this.textPanelCollapse) {
                 this.textPanelCollapse.addEventListener('click', () => this.toggleCollapse());
+            }
+            if (this.textPanelExpand) {
+                this.textPanelExpand.addEventListener('click', () => this.toggleCollapse());
             }
             if (this.textPanelClose) {
                 this.textPanelClose.addEventListener('click', () => this.hidePanel());

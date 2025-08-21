@@ -40,6 +40,7 @@ export default class SmartRedactorManager {
         this.redactorPanel = document.getElementById('smartRedactorPanel');
         this.redactorPanelCollapse = document.getElementById('redactorPanelCollapse');
         this.redactorPanelClose = document.getElementById('redactorPanelClose');
+        this.redactorPanelExpand = document.getElementById('redactorPanelExpand');
         
         // Analysis controls
         this.analyzeContentBtn = document.getElementById('analyzeContentBtn');
@@ -106,6 +107,9 @@ export default class SmartRedactorManager {
     bindEvents() {
         this.smartRedactorBtn.addEventListener('click', () => this.togglePanel());
         this.redactorPanelCollapse.addEventListener('click', () => this.toggleCollapse());
+        if (this.redactorPanelExpand) {
+            this.redactorPanelExpand.addEventListener('click', () => this.toggleCollapse());
+        }
         this.redactorPanelClose.addEventListener('click', () => this.hidePanel());
         
         // Analysis events
