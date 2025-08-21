@@ -32,6 +32,7 @@ export default class VoiceRecorderManager {
         this.voicePanel = document.getElementById('voiceRecorderPanel');
         this.voicePanelCollapse = document.getElementById('voicePanelCollapse');
         this.voicePanelClose = document.getElementById('voicePanelClose');
+        this.voicePanelExpand = document.getElementById('voicePanelExpand');
         
         // Recording controls
         this.voiceRecordBtn = document.getElementById('voiceRecordBtn');
@@ -125,6 +126,9 @@ normalizeForCloning = async (inputBlob) => {
             
             if (this.voicePanelCollapse) {
                 this.voicePanelCollapse.addEventListener('click', () => this.toggleCollapse());
+            }
+            if (this.voicePanelExpand) {
+                this.voicePanelExpand.addEventListener('click', () => this.toggleCollapse());
             }
             if (this.voicePanelClose) {
                 this.voicePanelClose.addEventListener('click', () => this.hidePanel());

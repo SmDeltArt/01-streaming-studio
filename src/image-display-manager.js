@@ -29,6 +29,7 @@ export default class ImageDisplayManager {
         if (this.imagePanel) this.imagePanel.classList.add('ai-scope');
         this.imagePanelCollapse = document.getElementById('imagePanelCollapse');
         this.imagePanelClose = document.getElementById('imagePanelClose');
+        this.imagePanelExpand = document.getElementById('imagePanelExpand');
         this.preserveAspectRatio = document.getElementById('preserveAspectRatio');
         this.imageFileInput = document.getElementById('imageFileInput');
         this.imageFileBrowse = document.getElementById('imageFileBrowse');
@@ -105,6 +106,9 @@ export default class ImageDisplayManager {
     bindEvents() {
         this.imageBtn.addEventListener('click', () => this.togglePanel());
         this.imagePanelCollapse.addEventListener('click', () => this.toggleCollapse());
+        if (this.imagePanelExpand) {
+            this.imagePanelExpand.addEventListener('click', () => this.toggleCollapse());
+        }
         this.imagePanelClose.addEventListener('click', () => this.hidePanel());
         this.imageFileBrowse.addEventListener('click', () => this.imageFileInput.click());
         this.imageFileInput.addEventListener('change', (e) => this.handleFileSelection(e));
