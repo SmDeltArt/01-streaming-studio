@@ -32,6 +32,7 @@ export default class VoiceRecorderManager {
         this.voicePanel = document.getElementById('voiceRecorderPanel');
         this.voicePanelCollapse = document.getElementById('voicePanelCollapse');
         this.voicePanelClose = document.getElementById('voicePanelClose');
+        this.voicePanelExpand = document.getElementById('voicePanelExpand');
         
         // Recording controls
         this.voiceRecordBtn = document.getElementById('voiceRecordBtn');
@@ -125,6 +126,9 @@ normalizeForCloning = async (inputBlob) => {
             
             if (this.voicePanelCollapse) {
                 this.voicePanelCollapse.addEventListener('click', () => this.toggleCollapse());
+            }
+            if (this.voicePanelExpand) {
+                this.voicePanelExpand.addEventListener('click', () => this.toggleCollapse());
             }
             if (this.voicePanelClose) {
                 this.voicePanelClose.addEventListener('click', () => this.hidePanel());
@@ -726,22 +730,25 @@ normalizeForCloning = async (inputBlob) => {
     }
 
     setupDragging() {
-        const header = this.voicePanel.querySelector('.voice-panel-header');
+        const dragHandles = this.voicePanel.querySelectorAll('.voice-panel-header, .voice-panel-actions');
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            this.voicePanel.classList.add('dragging');
-            
-            startX = e.clientX;
-            startY = e.clientY;
-            
-            const rect = this.voicePanel.getBoundingClientRect();
-            initialX = rect.left;
-            initialY = rect.top;
-            
-            e.preventDefault();
+
+        dragHandles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                this.voicePanel.classList.add('dragging');
+
+                startX = e.clientX;
+                startY = e.clientY;
+
+                const rect = this.voicePanel.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+
+                e.preventDefault();
+            });
         });
         
         document.addEventListener('mousemove', (e) => {

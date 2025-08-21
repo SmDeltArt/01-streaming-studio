@@ -29,6 +29,7 @@ export default class ImageDisplayManager {
         if (this.imagePanel) this.imagePanel.classList.add('ai-scope');
         this.imagePanelCollapse = document.getElementById('imagePanelCollapse');
         this.imagePanelClose = document.getElementById('imagePanelClose');
+        this.imagePanelExpand = document.getElementById('imagePanelExpand');
         this.preserveAspectRatio = document.getElementById('preserveAspectRatio');
         this.imageFileInput = document.getElementById('imageFileInput');
         this.imageFileBrowse = document.getElementById('imageFileBrowse');
@@ -105,6 +106,9 @@ export default class ImageDisplayManager {
     bindEvents() {
         this.imageBtn.addEventListener('click', () => this.togglePanel());
         this.imagePanelCollapse.addEventListener('click', () => this.toggleCollapse());
+        if (this.imagePanelExpand) {
+            this.imagePanelExpand.addEventListener('click', () => this.toggleCollapse());
+        }
         this.imagePanelClose.addEventListener('click', () => this.hidePanel());
         this.imageFileBrowse.addEventListener('click', () => this.imageFileInput.click());
         this.imageFileInput.addEventListener('change', (e) => this.handleFileSelection(e));
@@ -235,18 +239,21 @@ export default class ImageDisplayManager {
     }
 
     setupDragging() {
-        const header = this.imagePanel.querySelector('.image-panel-header');
+        const dragHandles = this.imagePanel.querySelectorAll('.image-panel-header, .image-panel-actions');
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            this.imagePanel.classList.add('dragging');
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = this.imagePanel.getBoundingClientRect();
-            initialX = rect.left;
-            initialY = rect.top;
-            e.preventDefault();
+        dragHandles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                this.imagePanel.classList.add('dragging');
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = this.imagePanel.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                e.preventDefault();
+            });
         });
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
