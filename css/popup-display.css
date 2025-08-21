@@ -96,6 +96,7 @@
 }
 
 .text-display-panel.collapsed .text-panel-header,
+
 .text-display-panel.collapsed .text-panel-content {
     display: none;
 }
@@ -272,6 +273,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0 0 10px 10px;
     backdrop-filter: blur(5px);
+    cursor: move;
 }
 
 .text-action-btn {
@@ -414,6 +416,7 @@
 }
 
 .image-display-panel.collapsed .image-panel-header,
+
 .image-display-panel.collapsed .image-panel-content {
     display: none;
 }
@@ -685,6 +688,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0 0 10px 10px;
     backdrop-filter: blur(5px);
+    cursor: move;
 }
 
 .image-action-btn {
@@ -856,6 +860,16 @@
     overflow-y: auto;
 }
 
+
+.voice-recorder-panel.collapsed .voice-panel-content {
+    display: none;
+}
+
+.voice-panel-actions #voicePanelExpand {
+    display: none;
+}
+
+
 .voice-recorder-panel.collapsed .voice-panel-header,
 .voice-recorder-panel.collapsed .voice-panel-content {
     display: none;
@@ -864,6 +878,7 @@
 .voice-panel-actions #voicePanelExpand {
     display: none;
 }
+
 
 .voice-recorder-panel.collapsed .voice-panel-actions #voicePanelExpand {
     display: inline-block;
@@ -1204,6 +1219,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0 0 10px 10px;
     backdrop-filter: blur(5px);
+    cursor: move;
 }
 
 .voice-action-btn {
@@ -1254,10 +1270,11 @@
         width: 95%;
         max-width: 380px;
     }
-    
+
     .text-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .text-action-btn {
@@ -1287,6 +1304,7 @@
     .image-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .image-action-btn {
@@ -1316,6 +1334,7 @@
     .voice-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .voice-action-btn {
@@ -1676,6 +1695,7 @@
     .text-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .text-action-btn {
@@ -1705,6 +1725,7 @@
     .image-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .image-action-btn {
@@ -1915,7 +1936,9 @@
     overflow-y: auto;
 }
 
+
 .smart-redactor-panel.collapsed .smart-redactor-header,
+
 .smart-redactor-panel.collapsed .smart-redactor-content {
     display: none;
 }
@@ -2124,6 +2147,7 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 0 0 10px 10px;
     backdrop-filter: blur(5px);
+    cursor: move;
 }
 
 .redactor-action-btn {
@@ -2331,6 +2355,7 @@
     .text-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .text-action-btn {
@@ -2360,6 +2385,7 @@
     .image-panel-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .image-action-btn {
@@ -2389,6 +2415,7 @@
     .smart-redactor-actions {
         flex-direction: column;
         gap: 6px;
+        cursor: move;
     }
     
     .redactor-action-btn {

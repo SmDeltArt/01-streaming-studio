@@ -162,19 +162,22 @@ if (key === 't' && !(e.target && e.target.matches && e.target.matches('input, te
     setupDragging() {
         if (!this.textPanel) return;
 
-        const header = this.textPanel.querySelector('.text-panel-header');
-        if (!header) return;
+        const dragHandles = this.textPanel.querySelectorAll('.text-panel-header, .text-panel-actions');
+        if (!dragHandles.length) return;
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            this.textPanel.classList.add('dragging');
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = this.textPanel.getBoundingClientRect();
-            initialX = rect.left;
-            initialY = rect.top;
-            e.preventDefault();
+        dragHandles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                this.textPanel.classList.add('dragging');
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = this.textPanel.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                e.preventDefault();
+            });
         });
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
