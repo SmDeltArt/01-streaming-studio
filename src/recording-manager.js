@@ -1,6 +1,15 @@
 
 import { captureIframeStream } from './iframe-capture.js';
+
 import { applyRegionCrop as applyStreamCrop, cropBlobToRegion } from './crop-utils.js';
+
+import { applyRegionCrop, cropBlobToRegion } from './crop-utils.js';
+
+import { applyRegionCrop, cropBlobToRegion } from './crop-utils.js';
+
+import { applyRegionCrop } from './crop-utils.js';
+
+
 
 export default class RecordingManager {
     constructor(app) {
@@ -125,6 +134,7 @@ export default class RecordingManager {
                 height = Math.round(contentRect.height);
             } else {
                 [width, height] = recordingSize.split('x').map(s => parseInt(s));
+
             }
 
             const region = this.getScaledContentRegion(width, height);
@@ -132,6 +142,29 @@ export default class RecordingManager {
 
             const captureWidth = region.x + region.width;
             const captureHeight = region.y + region.height;
+
+
+            }
+
+            const region = this.getScaledContentRegion(width, height);
+            this.lastRegion = region;
+
+            const captureWidth = region.x + region.width;
+            const captureHeight = region.y + region.height;
+
+
+
+                const contentRect = this.app.contentDisplay.getBoundingClientRect();
+                region = {
+                    x: Math.round(contentRect.left),
+                    y: Math.round(contentRect.top),
+                    width: width,
+                    height: height
+                };
+            }
+            this.lastRegion = region;
+            
+
 
                         const screenCaptureOptions = {
                 video: {
@@ -163,12 +196,27 @@ export default class RecordingManager {
                 }
             }
 
-            captureStream = await applyStreamCrop(
+
+
+            captureStream = await applyRegionCrop(
+
                 captureStream,
                 region,
                 this.app.contentDisplay,
                 frameRate
             );
+
+
+            if (region) {
+                captureStream = await applyRegionCrop(
+                    captureStream,
+                    region,
+                    this.app.contentDisplay,
+                    frameRate
+                );
+            }
+
+
 
             // Add camera and microphone streams if available
             if (this.app.cameraManager.mediaStream) {
@@ -393,7 +441,15 @@ export default class RecordingManager {
 
         sameFrameBtn.addEventListener('click', async () => {
             try {
+
                 const region = this.lastRegion || this.getScaledContentRegion();
+
+
+                const region = this.lastRegion || this.getScaledContentRegion();
+
+                const region = this.lastRegion || this.app.contentDisplay?.getBoundingClientRect();
+
+
                 const cropped = await cropBlobToRegion(blob, region);
                 const url = URL.createObjectURL(cropped);
                 const link = document.createElement('a');
