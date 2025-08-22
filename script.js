@@ -105,9 +105,10 @@ class StreamingStudio {
         // Info modal elements
         this.infoBtn = document.getElementById('infoBtn');
         this.infoModal = document.getElementById('infoModal');
-        this.infoCloseBtn = document.getElementById('infoCloseBtn');
+       this.infoCloseBtn = document.getElementById('infoCloseBtn');
 
                 this.validateRequiredElements();
+        this.verifyIframeRecordBtnWithinPanel();
     }
 
         validateRequiredElements() {
@@ -124,6 +125,25 @@ class StreamingStudio {
         if (missingElements.length > 0) {
             console.warn('Missing required DOM elements:', missingElements);
             throw new Error(`Required DOM elements not found: ${missingElements.join(', ')}`);
+        }
+    }
+
+    verifyIframeRecordBtnWithinPanel() {
+        const controlPanel = document.querySelector('.control-panel');
+        if (!controlPanel || !this.iframeRecordBtn) return;
+
+        const btnRect = this.iframeRecordBtn.getBoundingClientRect();
+        const panelRect = controlPanel.getBoundingClientRect();
+
+        const isWithin = btnRect.top >= panelRect.top &&
+            btnRect.left >= panelRect.left &&
+            btnRect.bottom <= panelRect.bottom &&
+            btnRect.right <= panelRect.right;
+
+        if (!isWithin) {
+            const message = 'iframeRecordBtn is not fully contained within the control panel';
+            console.error(message, { btnRect, panelRect });
+            throw new Error(message);
         }
     }
     

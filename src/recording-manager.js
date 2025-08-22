@@ -1,5 +1,6 @@
 
 import { captureIframeStream } from './iframe-capture.js';
+import { applyRegionCrop } from './crop-utils.js';
 
 export default class RecordingManager {
     constructor(app) {
@@ -150,7 +151,16 @@ export default class RecordingManager {
                     throw new Error('Screen capture not supported in this browser');
                 }
             }
-            
+
+            if (region) {
+                captureStream = await applyRegionCrop(
+                    captureStream,
+                    region,
+                    this.app.contentDisplay,
+                    frameRate
+                );
+            }
+
             // Add camera and microphone streams if available
             if (this.app.cameraManager.mediaStream) {
                 const videoTrack = this.app.cameraManager.mediaStream.getVideoTracks()[0];
