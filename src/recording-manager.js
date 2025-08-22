@@ -1,4 +1,6 @@
 
+import { captureIframeStream } from './iframe-capture.js';
+
 export default class RecordingManager {
     constructor(app) {
         this.app = app;
@@ -90,7 +92,7 @@ export default class RecordingManager {
         }
     }
     
-    async startRecording() {
+    async startRecording(options = {}) {
         try {
             this.clearError();
             this.updateRecordingStatus('preparing', 'Preparing to record...');
@@ -133,12 +135,20 @@ export default class RecordingManager {
                 }
             };
             
-            // Try to get screen capture stream
-            let captureStream;
-            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-                captureStream = await navigator.mediaDevices.getDisplayMedia(screenCaptureOptions);
-            } else {
-                throw new Error('Screen capture not supported in this browser');
+            // Try to get iframe capture stream first if requested
+            let captureStream = null;
+            const { source } = options;
+            if (source === 'iframe') {
+                captureStream = await captureIframeStream(this.app.contentFrame, true);
+            }
+
+            // Fallback to screen capture if iframe capture is not available
+            if (!captureStream) {
+                if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                    captureStream = await navigator.mediaDevices.getDisplayMedia(screenCaptureOptions);
+                } else {
+                    throw new Error('Screen capture not supported in this browser');
+                }
             }
             
             // Add camera and microphone streams if available
