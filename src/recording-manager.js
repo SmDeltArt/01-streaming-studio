@@ -1,4 +1,12 @@
 
+import { captureIframeStream } from './iframe-capture.js';
+import { applyRegionCrop, cropBlobToRegion } from './crop-utils.js';
+
+import { applyRegionCrop, cropBlobToRegion } from './crop-utils.js';
+
+import { applyRegionCrop } from './crop-utils.js';
+
+
 export default class RecordingManager {
     constructor(app) {
         this.app = app;
@@ -10,6 +18,7 @@ export default class RecordingManager {
         this.websimRecordingSession = null;
         this.mediaRecorder = null;
         this.recordedChunks = [];
+        this.lastRegion = null;
         
         this.initializeElements();
         this.bindEvents();
@@ -31,6 +40,17 @@ export default class RecordingManager {
         this.recordingSize.addEventListener('change', () => this.updateRecordingSize());
         this.frameRateSelect.addEventListener('change', () => this.updateRecordingSettings());
         this.recordingFormat.addEventListener('change', () => this.updateRecordingSettings());
+    }
+
+    getScaledContentRegion(width, height) {
+        const rect = this.app.contentDisplay.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        return {
+            x: Math.round(rect.left * dpr),
+            y: Math.round(rect.top * dpr),
+            width: Math.round((width ?? rect.width) * dpr),
+            height: Math.round((height ?? rect.height) * dpr)
+        };
     }
     
     updateRecordingSize() {
@@ -90,7 +110,7 @@ export default class RecordingManager {
         }
     }
     
-    async startRecording() {
+    async startRecording(options = {}) {
         try {
             this.clearError();
             this.updateRecordingStatus('preparing', 'Preparing to record...');
@@ -103,27 +123,40 @@ export default class RecordingManager {
                         const format = this.recordingFormat.value;
             const recordingSize = this.recordingSize.value;
             
-            let width, height, region = null;
+            let width, height;
+            const contentRect = this.app.contentDisplay.getBoundingClientRect();
             if (recordingSize === 'auto') {
-                width = window.innerWidth;
-                height = window.innerHeight;
+                width = Math.round(contentRect.width);
+                height = Math.round(contentRect.height);
             } else {
                 [width, height] = recordingSize.split('x').map(s => parseInt(s));
-                
-                                const contentRect = this.app.contentDisplay.getBoundingClientRect();
+
+            }
+
+            const region = this.getScaledContentRegion(width, height);
+            this.lastRegion = region;
+
+            const captureWidth = region.x + region.width;
+            const captureHeight = region.y + region.height;
+
+
+
+                const contentRect = this.app.contentDisplay.getBoundingClientRect();
                 region = {
                     x: Math.round(contentRect.left),
-                    y: Math.round(contentRect.top), 
+                    y: Math.round(contentRect.top),
                     width: width,
                     height: height
                 };
             }
+            this.lastRegion = region;
             
+
                         const screenCaptureOptions = {
                 video: {
                     mediaSource: 'screen',
-                    width: { ideal: width, max: width },
-                    height: { ideal: height, max: height },
+                    width: { ideal: captureWidth, max: captureWidth },
+                    height: { ideal: captureHeight, max: captureHeight },
                     frameRate: { ideal: frameRate, max: frameRate }
                 },
                 audio: {
@@ -133,14 +166,40 @@ export default class RecordingManager {
                 }
             };
             
-            // Try to get screen capture stream
-            let captureStream;
-            if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-                captureStream = await navigator.mediaDevices.getDisplayMedia(screenCaptureOptions);
-            } else {
-                throw new Error('Screen capture not supported in this browser');
+            // Try to get iframe capture stream first if requested
+            let captureStream = null;
+            const { source } = options;
+            if (source === 'iframe') {
+                captureStream = await captureIframeStream(this.app.contentFrame, true);
             }
-            
+
+            // Fallback to screen capture if iframe capture is not available
+            if (!captureStream) {
+                if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+                    captureStream = await navigator.mediaDevices.getDisplayMedia(screenCaptureOptions);
+                } else {
+                    throw new Error('Screen capture not supported in this browser');
+                }
+            }
+
+
+            captureStream = await applyRegionCrop(
+                captureStream,
+                region,
+                this.app.contentDisplay,
+                frameRate
+            );
+
+            if (region) {
+                captureStream = await applyRegionCrop(
+                    captureStream,
+                    region,
+                    this.app.contentDisplay,
+                    frameRate
+                );
+            }
+
+
             // Add camera and microphone streams if available
             if (this.app.cameraManager.mediaStream) {
                 const videoTrack = this.app.cameraManager.mediaStream.getVideoTracks()[0];
@@ -303,7 +362,9 @@ export default class RecordingManager {
         if (this.recordingTimer) {
             this.recordingTimer.style.display = 'none';
         }
-        
+
+        this.lastRegion = null;
+
         setTimeout(() => {
             this.updateRecordingStatus('ready', 'Ready to Record');
         }, 2000);
@@ -338,6 +399,9 @@ export default class RecordingManager {
                 <h4>🎉 Recording Complete!</h4>
                 <p>Your screen recording has been saved successfully.</p>
                 <div class="recording-actions">
+                    <button class="same-frame-btn" data-url="${recordingUrl}">
+                        🔲 Same Frame Only
+                    </button>
                     <a href="${recordingUrl}" download="${filename}" class="download-btn">
                         📥 Download Video (${(blob.size / (1024*1024)).toFixed(1)} MB)
                     </a>
@@ -353,8 +417,31 @@ export default class RecordingManager {
         
         document.body.appendChild(notification);
         
+        const sameFrameBtn = notification.querySelector('.same-frame-btn');
         const previewBtn = notification.querySelector('.preview-btn');
         const closeBtn = notification.querySelector('.close-btn');
+
+        sameFrameBtn.addEventListener('click', async () => {
+            try {
+
+                const region = this.lastRegion || this.getScaledContentRegion();
+
+                const region = this.lastRegion || this.app.contentDisplay?.getBoundingClientRect();
+
+                const cropped = await cropBlobToRegion(blob, region);
+                const url = URL.createObjectURL(cropped);
+                const link = document.createElement('a');
+                const ext = filename.substring(filename.lastIndexOf('.'));
+                link.href = url;
+                link.download = filename.replace(ext, `-frame${ext}`);
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Failed to crop recording:', err);
+            }
+        });
         
         previewBtn.addEventListener('click', () => {
             window.open(recordingUrl, '_blank');

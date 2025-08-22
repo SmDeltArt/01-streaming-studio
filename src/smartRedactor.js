@@ -247,27 +247,31 @@ export default class SmartRedactorManager {
         // Panel dragging
         const header = this.redactorPanel.querySelector('.smart-redactor-header');
         this.setupElementDragging(header, this.redactorPanel);
-        
+        const actions = this.redactorPanel.querySelector('.smart-redactor-actions');
+        if (actions) this.setupElementDragging(actions, this.redactorPanel);
+
         // Vignette dragging
         const vignetteHeader = this.readingVignette.querySelector('.vignette-header');
         this.setupElementDragging(vignetteHeader, this.readingVignette, true);
     }
-    
+
     setupElementDragging(dragHandle, element, isVignette = false) {
+        if (!dragHandle) return;
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        
+
         dragHandle.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
             isDragging = true;
             element.classList.add('dragging');
-            
+
             startX = e.clientX;
             startY = e.clientY;
-            
+
             const rect = element.getBoundingClientRect();
             initialX = rect.left;
             initialY = rect.top;
-            
+
             e.preventDefault();
         });
         

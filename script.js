@@ -88,6 +88,7 @@ class StreamingStudio {
         
         this.cameraBtn = document.getElementById('cameraBtn');
         this.micBtn = document.getElementById('micBtn');
+        this.iframeRecordBtn = document.getElementById('iframeRecordBtn');
         this.recordBtn = document.getElementById('recordBtn');
         this.pauseBtn = document.getElementById('pauseBtn');
         this.stopBtn = document.getElementById('stopBtn');
@@ -104,14 +105,15 @@ class StreamingStudio {
         // Info modal elements
         this.infoBtn = document.getElementById('infoBtn');
         this.infoModal = document.getElementById('infoModal');
-        this.infoCloseBtn = document.getElementById('infoCloseBtn');
+       this.infoCloseBtn = document.getElementById('infoCloseBtn');
 
                 this.validateRequiredElements();
+        this.verifyIframeRecordBtnWithinPanel();
     }
 
         validateRequiredElements() {
         const requiredElements = [
-            'urlInput', 'loadBtn', 'cameraBtn', 'micBtn', 'recordBtn',
+            'urlInput', 'loadBtn', 'cameraBtn', 'micBtn', 'iframeRecordBtn', 'recordBtn',
             'contentDisplay', 'statusDot', 'statusText'
         ];
         
@@ -123,6 +125,25 @@ class StreamingStudio {
         if (missingElements.length > 0) {
             console.warn('Missing required DOM elements:', missingElements);
             throw new Error(`Required DOM elements not found: ${missingElements.join(', ')}`);
+        }
+    }
+
+    verifyIframeRecordBtnWithinPanel() {
+        const controlPanel = document.querySelector('.control-panel');
+        if (!controlPanel || !this.iframeRecordBtn) return;
+
+        const btnRect = this.iframeRecordBtn.getBoundingClientRect();
+        const panelRect = controlPanel.getBoundingClientRect();
+
+        const isWithin = btnRect.top >= panelRect.top &&
+            btnRect.left >= panelRect.left &&
+            btnRect.bottom <= panelRect.bottom &&
+            btnRect.right <= panelRect.right;
+
+        if (!isWithin) {
+            const message = 'iframeRecordBtn is not fully contained within the control panel';
+            console.error(message, { btnRect, panelRect });
+            throw new Error(message);
         }
     }
     
@@ -212,12 +233,21 @@ class StreamingStudio {
             
             // Recording controls - with safe manager calls
             if (this.recordBtn) {
-                this.recordBtn.addEventListener('click', () => 
+                this.recordBtn.addEventListener('click', () =>
                     this.safeManagerCall('recordingManager', 'toggleRecording')
                 );
             }
+            if (this.iframeRecordBtn) {
+                this.iframeRecordBtn.addEventListener('click', () => {
+                    if (!this.isRecording) {
+                        this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
+                    } else {
+                        this.safeManagerCall('recordingManager', 'stopRecording');
+                    }
+                });
+            }
             if (this.pauseBtn) {
-                this.pauseBtn.addEventListener('click', () => 
+                this.pauseBtn.addEventListener('click', () =>
                     this.safeManagerCall('recordingManager', 'togglePause')
                 );
             }

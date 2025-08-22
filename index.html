@@ -33,7 +33,11 @@
                         <span id="statusText">Ready</span>
                     </div>
                 </div>
-                
+                <button id="iframeRecordBtn" class="btn secondary" title="Record IFrame">
+                    <span class="icon">🖼️</span>
+                    <span class="label">Record IFrame</span>
+                </button>
+
                 <div class="control-section">
                     <h3>Media Source</h3>
                     <div class="media-upload-group">
@@ -62,10 +66,27 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="control-section">
+                    <h3>Content Source</h3>
+                    <div class="input-group">
+                        <input type="url" id="urlInput" placeholder="Enter website URL or content link">
+                        <button id="loadBtn" class="btn primary" title="Load Content (L)">
+                            <span class="icon">🔗</span>
+                            <span class="label">Load</span>
+                            <span class="shortcut">(L)</span>
+                        </button>
+                    </div>
+                    <div class="quick-links">
+                        <button class="quick-link-btn" data-url="https://example.com">Example Site</button>
+                        <button class="quick-link-btn" data-url="about:blank">Blank Page</button>
+                    </div>
+                </div>
+
                     <button id="smartRedactorBtn" class="btn smart-redactor-btn" title="AI Smart Redactor (A)">
                         <span class="icon">🤖</span>
                         <span class="label">+ AI Redactor <span class="shortcut">(A)</span></span>
-                    </button>                                     
+                    </button>
                                              
                     <button id="voiceRecorderBtn" class="btn voice-recorder-btn" title="AI Voice Recorder (R)">
                         <span class="icon">🎙️</span>
@@ -87,21 +108,6 @@
                         <span class="icon">ℹ️</span>
                         <span class="label">Info <span class="shortcut">(I)</span></span>
                     </button>
-                <div class="control-section">
-                    <h3>Content Source</h3>
-                    <div class="input-group">
-                        <input type="url" id="urlInput" placeholder="Enter website URL or content link">
-                        <button id="loadBtn" class="btn primary" title="Load Content (L)">
-                            <span class="icon">🔗</span>
-                            <span class="label">Load</span>
-                            <span class="shortcut">(L)</span>
-                        </button>
-                    </div>
-                    <div class="quick-links">
-                        <button class="quick-link-btn" data-url="https://example.com">Example Site</button>
-                        <button class="quick-link-btn" data-url="about:blank">Blank Page</button>
-                    </div>
-                </div>
 
                 <div class="control-section">
                     <h3>Camera & Audio</h3>
@@ -248,7 +254,6 @@
                         <span id="recordingStatusText">Ready to Record</span>
                         <span id="recordingTimer" style="display: none;">00:00</span>
                     </div>
-                    
                     <button id="recordBtn" class="btn record-btn" title="Start Recording (R)" data-recording="false">
                         <span class="icon">⏺️</span>
                         <span class="label">Start Recording <span class="shortcut">(R)</span></span>

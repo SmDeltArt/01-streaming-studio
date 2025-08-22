@@ -239,18 +239,21 @@ export default class ImageDisplayManager {
     }
 
     setupDragging() {
-        const header = this.imagePanel.querySelector('.image-panel-header');
+        const dragHandles = this.imagePanel.querySelectorAll('.image-panel-header, .image-panel-actions');
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            this.imagePanel.classList.add('dragging');
-            startX = e.clientX;
-            startY = e.clientY;
-            const rect = this.imagePanel.getBoundingClientRect();
-            initialX = rect.left;
-            initialY = rect.top;
-            e.preventDefault();
+        dragHandles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                this.imagePanel.classList.add('dragging');
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = this.imagePanel.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                e.preventDefault();
+            });
         });
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
