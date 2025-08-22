@@ -59,6 +59,7 @@ export async function applyRegionCrop(
   return cropper(stream, region, frameRate);
 }
 
+
 export async function cropBlobToRegion(blob, region, frameRate = 30) {
   if (!blob || !region) return blob;
 
@@ -110,3 +111,4 @@ export async function cropBlobToRegion(blob, region, frameRate = 30) {
     );
   });
 }
+

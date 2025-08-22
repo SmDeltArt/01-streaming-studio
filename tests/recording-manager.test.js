@@ -6,7 +6,11 @@ vi.mock('../src/crop-utils.js', () => ({
 }));
 
 import RecordingManager from '../src/recording-manager.js';
+
 import { cropBlobToRegion, applyRegionCrop } from '../src/crop-utils.js';
+
+import { cropBlobToRegion } from '../src/crop-utils.js';
+
 
 describe('RecordingManager showRecordingComplete', () => {
   it('adds Same Frame Only button and crops on click', async () => {
@@ -47,6 +51,7 @@ describe('RecordingManager showRecordingComplete', () => {
     expect(cropBlobToRegion).toHaveBeenCalledWith(blob, manager.lastRegion);
   });
 });
+
 
 describe('RecordingManager region calculation', () => {
   it('uses device-pixel-aware region when size is auto', async () => {
@@ -115,3 +120,4 @@ describe('RecordingManager region calculation', () => {
     expect(applyRegionCrop).toHaveBeenCalledWith(expect.any(Object), manager.lastRegion, content, 30);
   });
 });
+
