@@ -1,3 +1,4 @@
+
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('../src/crop-utils.js', () => ({
@@ -7,7 +8,7 @@ vi.mock('../src/crop-utils.js', () => ({
 
 import RecordingManager from '../src/recording-manager.js';
 
-import { cropBlobToRegion, applyRegionCrop } from '../src/crop-utils.js';
+
 
 
 
@@ -128,3 +129,5 @@ describe('RecordingManager region calculation', () => {
   });
 });
 
+
+// Other content...
