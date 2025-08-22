@@ -124,7 +124,7 @@ body {
     gap: 8px;
 }
 
-.download-btn, .preview-btn, .close-btn {
+.download-btn, .preview-btn, .close-btn, .same-frame-btn {
     display: inline-block;
     padding: 10px 16px;
     border: none;
@@ -164,6 +164,16 @@ body {
 
 .close-btn:hover {
     background: linear-gradient(135deg, #c53030 0%, #9c2626 100%);
+    transform: translateY(-1px);
+}
+
+.same-frame-btn {
+    background: linear-gradient(135deg, #f6ad55 0%, #dd6b20 100%);
+    color: white;
+}
+
+.same-frame-btn:hover {
+    background: linear-gradient(135deg, #dd6b20 0%, #c05621 100%);
     transform: translateY(-1px);
 }
 
