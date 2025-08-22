@@ -8,44 +8,33 @@ export default class ImageDisplayManager {
         this.defaultDisplayDuration = 5000;
         this.imageFadeTransition = 500;
         this.maxSimultaneousImages = 3;
-
         this.activeImages = [];
         this.isDragging = false;
         this.dragOffset = { x: 0, y: 0 };
         this.currentSettings = this.getDefaultSettings();
         this.currentImageData = null;
         this.currentSoundData = null;
-
         this.currentAudio = null;
         this.audioProgressInterval = null;
         this.audioMetadata = null;
-
         this.initializeElements();
         this.bindEvents();
         this.setupDragging();
-        
-        // Initialize AI generation module
         this.smartImagesAI = new SmartImagesAI(this);
     }
 
-
-    
     initializeElements() {
         this.imageBtn = document.getElementById('imageBtn');
         this.imagePanel = document.getElementById('imageDisplayPanel');
         if (this.imagePanel) this.imagePanel.classList.add('ai-scope');
-
         this.imagePanelCollapse = document.getElementById('imagePanelCollapse');
         this.imagePanelClose = document.getElementById('imagePanelClose');
+        this.imagePanelExpand = document.getElementById('imagePanelExpand');
         this.preserveAspectRatio = document.getElementById('preserveAspectRatio');
-        
-        // Source controls
         this.imageFileInput = document.getElementById('imageFileInput');
         this.imageFileBrowse = document.getElementById('imageFileBrowse');
         this.imageUrlInput = document.getElementById('imageUrlInput');
         this.imagePreview = document.getElementById('imagePreview');
-        
-        // Size & Position controls
         this.imageWidth = document.getElementById('imageWidth');
         this.widthValue = document.getElementById('widthValue');
         this.imageHeight = document.getElementById('imageHeight');
@@ -57,8 +46,6 @@ export default class ImageDisplayManager {
         this.rotationValue = document.getElementById('rotationValue');
         this.imageDisplayTime = document.getElementById('imageDisplayTime');
         this.imageDisplayTimeValue = document.getElementById('imageDisplayTimeValue');
-        
-        // Appearance controls
         this.imageOpacity = document.getElementById('imageOpacity');
         this.opacityValue = document.getElementById('opacityValue');
         this.imageBorderRadius = document.getElementById('imageBorderRadius');
@@ -68,8 +55,6 @@ export default class ImageDisplayManager {
         this.imageBorderWidth = document.getElementById('imageBorderWidth');
         this.imageBorderWidthValue = document.getElementById('imageBorderWidthValue');
         this.imageBorderColor = document.getElementById('imageBorderColor');
-        
-        // Effects controls
         this.imageBlur = document.getElementById('imageBlur');
         this.imageBlurValue = document.getElementById('imageBlurValue');
         this.imageBrightness = document.getElementById('imageBrightness');
@@ -82,32 +67,23 @@ export default class ImageDisplayManager {
         this.imageHueRotateValue = document.getElementById('imageHueRotateValue');
         this.imageGrayscale = document.getElementById('imageGrayscale');
         this.imageGrayscaleValue = document.getElementById('imageGrayscaleValue');
-        
-        // Animation controls
         this.imageAnimation = document.getElementById('imageAnimation');
-        
-        // Sound controls
-       
         this.imageSoundInput = document.getElementById('imageSoundInput');
-                this.imageSoundBrowse = document.getElementById('imageSoundBrowse');
+        this.imageSoundBrowse = document.getElementById('imageSoundBrowse');
         this.imageSoundInfo = document.getElementById('imageSoundInfo');
         this.imageSoundVolume = document.getElementById('imageSoundVolume');
         this.imageSoundVolumeValue = document.getElementById('imageSoundVolumeValue');
         this.imageSoundLoop = document.getElementById('imageSoundLoop');
-                this.imageSoundProgress = document.getElementById('imageSoundProgress') || null;
+        this.imageSoundProgress = document.getElementById('imageSoundProgress') || null;
         this.imageSoundDuration = document.getElementById('imageSoundDuration') || null;
         this.imageSoundMaxDuration = document.getElementById('imageSoundMaxDuration') || null;
         this.imageSoundMaxDurationValue = document.getElementById('imageSoundMaxDurationValue') || null;
         this.imageSoundStop = document.getElementById('imageSoundStop') || null;
-        
-        // Action buttons
         this.showImageBtn = document.getElementById('showImageBtn');
         this.previewImageBtn = document.getElementById('previewImageBtn');
         this.saveImageBtn = document.getElementById('saveImageBtn');
         this.loadImageBtn = document.getElementById('loadImageBtn');
         this.removeImageBtn = document.getElementById('removeImageBtn');
-        
-        // AI Generator elements
         this.aiGenerateBtn = document.getElementById('aiGenerateBtn');
         this.aiGeneratorSection = document.getElementById('aiGeneratorSection');
         this.aiCustomPrompt = document.getElementById('aiCustomPrompt');
@@ -122,141 +98,121 @@ export default class ImageDisplayManager {
         this.regenerateBtn = document.getElementById('regenerateBtn');
         this.saveGeneratedBtn = document.getElementById('saveGeneratedBtn');
         this.aiGenerationStatus = document.getElementById('aiGenerationStatus');
-        
-        /* @tweakable AI generation state management */
         this.currentGeneratedImage = null;
         this.isGenerating = false;
         this.generationHistory = [];
     }
-    
+
     bindEvents() {
         this.imageBtn.addEventListener('click', () => this.togglePanel());
         this.imagePanelCollapse.addEventListener('click', () => this.toggleCollapse());
+        if (this.imagePanelExpand) {
+            this.imagePanelExpand.addEventListener('click', () => this.toggleCollapse());
+        }
         this.imagePanelClose.addEventListener('click', () => this.hidePanel());
-
-        // Source events
         this.imageFileBrowse.addEventListener('click', () => this.imageFileInput.click());
         this.imageFileInput.addEventListener('change', (e) => this.handleFileSelection(e));
         this.imageUrlInput.addEventListener('input', () => this.handleUrlInput());
-        
-        // Size & Position events
         this.imageWidth.addEventListener('input', () => {
             this.widthValue.textContent = this.imageWidth.value + 'px';
-            /* @tweakable automatic height adjustment to maintain aspect ratio when width changes */
-                        if (this.currentImageData && this.currentImageData.aspectRatio) {
-                    const newHeight = Math.round(parseInt(this.imageWidth.value) / this.currentImageData.aspectRatio);
-                    this.imageHeight.value = newHeight;
-                    this.heightValue.textContent = newHeight + 'px';
-                }
-                this.updatePreview();
-            });
-            this.imageHeight.addEventListener('input', () => {
-                this.heightValue.textContent = this.imageHeight.value + 'px';
-                        if (this.currentImageData && this.currentImageData.aspectRatio) {
-                    const newWidth = Math.round(parseInt(this.imageHeight.value) * this.currentImageData.aspectRatio);
-                    this.imageWidth.value = newWidth;
-                    this.widthValue.textContent = newWidth + 'px';
-                }
-                this.updatePreview();
-            });
-            this.imageScale.addEventListener('input', () => {
-                this.scaleValue.textContent = this.imageScale.value + '%';
-                this.updatePreview();
-            });
-            this.imageRotation.addEventListener('input', () => {
-                this.rotationValue.textContent = this.imageRotation.value + '°';
-                this.updatePreview();
-            });
-            this.imageDisplayTime.addEventListener('input', () => {
-                this.imageDisplayTimeValue.textContent = this.imageDisplayTime.value + 's';
-            });
-            
-            // Appearance events
-            this.imageOpacity.addEventListener('input', () => {
-                this.opacityValue.textContent = this.imageOpacity.value + '%';
-                this.updatePreview();
-            });
-            this.imageBorderRadius.addEventListener('input', () => {
-                this.imageBorderRadiusValue.textContent = this.imageBorderRadius.value + 'px';
-                this.updatePreview();
-            });
-            this.imageShadowBlur.addEventListener('input', () => {
-                this.imageShadowBlurValue.textContent = this.imageShadowBlur.value + 'px';
-                this.updatePreview();
-            });
-            this.imageBorderWidth.addEventListener('input', () => {
-                this.imageBorderWidthValue.textContent = this.imageBorderWidth.value + 'px';
-                this.updatePreview();
-            });
-            
-            // Effects events
-            this.imageBlur.addEventListener('input', () => {
-                this.imageBlurValue.textContent = this.imageBlur.value + 'px';
-                this.updatePreview();
-            });
-            this.imageBrightness.addEventListener('input', () => {
-                this.imageBrightnessValue.textContent = this.imageBrightness.value + '%';
-                this.updatePreview();
-            });
-            this.imageContrast.addEventListener('input', () => {
-                this.imageContrastValue.textContent = this.imageContrast.value + '%';
-                this.updatePreview();
-            });
-            this.imageSaturation.addEventListener('input', () => {
-                this.imageSaturationValue.textContent = this.imageSaturation.value + '%';
-                this.updatePreview();
-            });
-            this.imageHueRotate.addEventListener('input', () => {
-                this.imageHueRotateValue.textContent = this.imageHueRotate.value + '°';
-                this.updatePreview();
-            });
-            this.imageGrayscale.addEventListener('input', () => {
-                this.imageGrayscaleValue.textContent = this.imageGrayscale.value + '%';
-                this.updatePreview();
-            });
-            
-            // Sound events
-           this.imageSoundBrowse.addEventListener('click', () => {
-            /* @tweakable prevent sound loading when media already has sound */
+            if (this.currentImageData && this.currentImageData.aspectRatio) {
+                const newHeight = Math.round(parseInt(this.imageWidth.value) / this.currentImageData.aspectRatio);
+                this.imageHeight.value = newHeight;
+                this.heightValue.textContent = newHeight + 'px';
+            }
+            this.updatePreview();
+        });
+        this.imageHeight.addEventListener('input', () => {
+            this.heightValue.textContent = this.imageHeight.value + 'px';
+            if (this.currentImageData && this.currentImageData.aspectRatio) {
+                const newWidth = Math.round(parseInt(this.imageHeight.value) * this.currentImageData.aspectRatio);
+                this.imageWidth.value = newWidth;
+                this.widthValue.textContent = newWidth + 'px';
+            }
+            this.updatePreview();
+        });
+        this.imageScale.addEventListener('input', () => {
+            this.scaleValue.textContent = this.imageScale.value + '%';
+            this.updatePreview();
+        });
+        this.imageRotation.addEventListener('input', () => {
+            this.rotationValue.textContent = this.imageRotation.value + '°';
+            this.updatePreview();
+        });
+        this.imageDisplayTime.addEventListener('input', () => {
+            this.imageDisplayTimeValue.textContent = this.imageDisplayTime.value + 's';
+        });
+        this.imageOpacity.addEventListener('input', () => {
+            this.opacityValue.textContent = this.imageOpacity.value + '%';
+            this.updatePreview();
+        });
+        this.imageBorderRadius.addEventListener('input', () => {
+            this.imageBorderRadiusValue.textContent = this.imageBorderRadius.value + 'px';
+            this.updatePreview();
+        });
+        this.imageShadowBlur.addEventListener('input', () => {
+            this.imageShadowBlurValue.textContent = this.imageShadowBlur.value + 'px';
+            this.updatePreview();
+        });
+        this.imageBorderWidth.addEventListener('input', () => {
+            this.imageBorderWidthValue.textContent = this.imageBorderWidth.value + 'px';
+            this.updatePreview();
+        });
+        this.imageBlur.addEventListener('input', () => {
+            this.imageBlurValue.textContent = this.imageBlur.value + 'px';
+            this.updatePreview();
+        });
+        this.imageBrightness.addEventListener('input', () => {
+            this.imageBrightnessValue.textContent = this.imageBrightness.value + '%';
+            this.updatePreview();
+        });
+        this.imageContrast.addEventListener('input', () => {
+            this.imageContrastValue.textContent = this.imageContrast.value + '%';
+            this.updatePreview();
+        });
+        this.imageSaturation.addEventListener('input', () => {
+            this.imageSaturationValue.textContent = this.imageSaturation.value + '%';
+            this.updatePreview();
+        });
+        this.imageHueRotate.addEventListener('input', () => {
+            this.imageHueRotateValue.textContent = this.imageHueRotate.value + '°';
+            this.updatePreview();
+        });
+        this.imageGrayscale.addEventListener('input', () => {
+            this.imageGrayscaleValue.textContent = this.imageGrayscale.value + '%';
+            this.updatePreview();
+        });
+        this.imageSoundBrowse.addEventListener('click', () => {
             if (this.currentImageData && (this.currentImageData.type.startsWith('video/') || this.currentImageData.type.startsWith('audio/'))) {
                 alert('Media file already contains sound. Remove the current media to add separate audio.');
                 return;
             }
-           this.imageSoundInput.click();
-           });
-           if (this.imageSoundInput) {
+            this.imageSoundInput.click();
+        });
+        if (this.imageSoundInput) {
             this.imageSoundInput.addEventListener('change', (e) => this.handleSoundSelection(e));
-            }
-           this.imageSoundVolume.addEventListener('input', () => {
-           this.imageSoundVolumeValue.textContent = this.imageSoundVolume.value + '%';
-            
-            // Apply volume change to currently playing audio in real-time
+        }
+        this.imageSoundVolume.addEventListener('input', () => {
+            this.imageSoundVolumeValue.textContent = this.imageSoundVolume.value + '%';
             if (this.currentAudio && !this.currentAudio.paused) {
                 this.currentAudio.volume = Math.max(0, Math.min(1, parseInt(this.imageSoundVolume.value) / 100));
             }
         });
-        
-                if (this.imageSoundProgress) {
+        if (this.imageSoundProgress) {
             this.imageSoundProgress.addEventListener('input', () => this.seekAudio());
             this.imageSoundProgress.addEventListener('change', () => this.seekAudio());
         }
-        
-                if (this.imageSoundMaxDuration && this.imageSoundMaxDurationValue) {
+        if (this.imageSoundMaxDuration && this.imageSoundMaxDurationValue) {
             this.imageSoundMaxDuration.addEventListener('input', () => {
                 this.imageSoundMaxDurationValue.textContent = this.imageSoundMaxDuration.value + 's';
             });
         }
-        
         if (this.imageSoundStop) {
             this.imageSoundStop.addEventListener('click', () => this.stopCurrentAudio());
         }
-        
-        // Change events for preview update
         [this.imagePosition, this.imageAnimation, this.imageBorderColor].forEach(element => {
             element.addEventListener('change', () => this.updatePreview());
         });
-        
-        // Action buttons - add null checks to prevent loading errors
         if (this.showImageBtn) {
             this.showImageBtn.addEventListener('click', () => this.showImage());
         }
@@ -271,66 +227,48 @@ export default class ImageDisplayManager {
         }
         if (this.removeImageBtn) {
             this.removeImageBtn.addEventListener('click', () => this.removeAllImages());
-        
-            /* @tweakable add remove functionality for clearing current media and sound */
-            // Update remove button to clear current media and sound
             this.removeImageBtn.removeEventListener('click', () => this.removeAllImages());
             this.removeImageBtn.addEventListener('click', () => this.removeCurrentMedia());
         }
-
-        // Keyboard shortcut
         document.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'i' && !e.target.matches('input, textarea, select')) {
                 this.togglePanel();
                 e.preventDefault();
             }
         });
-
-        // AI generator menu reconnection - remove duplicate bindings to avoid conflicts
-        // AI functionality is handled by this.smartImagesAI instance
     }
-    
+
     setupDragging() {
-        const header = this.imagePanel.querySelector('.image-panel-header');
+        const dragHandles = this.imagePanel.querySelectorAll('.image-panel-header, .image-panel-actions');
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        
-        header.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            this.imagePanel.classList.add('dragging');
-            
-            startX = e.clientX;
-            startY = e.clientY;
-            
-            const rect = this.imagePanel.getBoundingClientRect();
-            initialX = rect.left;
-            initialY = rect.top;
-            
-            e.preventDefault();
+        dragHandles.forEach(handle => {
+            handle.addEventListener('mousedown', (e) => {
+                if (e.target.tagName === 'BUTTON') return;
+                isDragging = true;
+                this.imagePanel.classList.add('dragging');
+                startX = e.clientX;
+                startY = e.clientY;
+                const rect = this.imagePanel.getBoundingClientRect();
+                initialX = rect.left;
+                initialY = rect.top;
+                e.preventDefault();
+            });
         });
-        
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
-            
             const deltaX = e.clientX - startX;
             const deltaY = e.clientY - startY;
-            
             let newX = initialX + deltaX;
             let newY = initialY + deltaY;
-            
-                        const panelRect = this.imagePanel.getBoundingClientRect();
-            const minVisibleArea = Math.min(panelRect.width, panelRect.height) * 0.05; // 5% must stay visible
-            
-            newX = Math.max(-panelRect.width + minVisibleArea, 
-                           Math.min(newX, window.innerWidth - minVisibleArea));
-            newY = Math.max(-panelRect.height + minVisibleArea, 
-                           Math.min(newY, window.innerHeight - minVisibleArea));
-            
+            const panelRect = this.imagePanel.getBoundingClientRect();
+            const minVisibleArea = Math.min(panelRect.width, panelRect.height) * 0.05;
+            newX = Math.max(-panelRect.width + minVisibleArea, Math.min(newX, window.innerWidth - minVisibleArea));
+            newY = Math.max(-panelRect.height + minVisibleArea, Math.min(newY, window.innerHeight - minVisibleArea));
             this.imagePanel.style.left = `${newX}px`;
             this.imagePanel.style.top = `${newY}px`;
             this.imagePanel.style.transform = 'none';
         });
-        
         document.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
@@ -338,362 +276,280 @@ export default class ImageDisplayManager {
             }
         });
     }
-    
-        async handleFileSelection(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+              async handleFileSelection(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const maxFileSize = 50 * 1024 * 1024;
+                const supportedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+                const supportedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+                const supportedAudioTypes = ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac'];
+                const animatedFormats = ['image/gif', 'image/webp'];
+                if (file.size > maxFileSize) {
+                    alert('File size too large. Maximum allowed size is 50MB.');
+                    return;
+                }
+                const fileType = file.type;
+                const isImage = supportedImageTypes.includes(fileType);
+                const isVideo = supportedVideoTypes.includes(fileType);
+                const isAudio = supportedAudioTypes.includes(fileType);
+                const isAnimated = animatedFormats.includes(fileType);
+                if (!isImage && !isVideo && !isAudio) {
+                    alert('Unsupported file type. Please select an image, video, or audio file.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    this.currentImageData = {
+                        type: fileType,
+                        data: e.target.result,
+                        name: file.name,
+                        size: file.size,
+                        isAnimated: isAnimated,
+                        hasTransparency: false,
+                        removeFrames: false
+                    };
+                    if (isImage) {
+                        try {
+                            const dimensions = await this.extractImageDimensions(e.target.result);
+                            if (dimensions.width && dimensions.height) {
+                                this.currentImageData.originalWidth = dimensions.width;
+                                this.currentImageData.originalHeight = dimensions.height;
+                                this.currentImageData.aspectRatio = dimensions.width / dimensions.height;
+                                this.adjustImageDimensionsToAspectRatio(dimensions.width, dimensions.height);
+                            }
+                        } catch (error) {}
+                    } else if (isVideo) {
+                        try {
+                            const dimensions = await this.extractVideoDimensions(e.target.result);
+                            if (dimensions.width && dimensions.height) {
+                                this.currentImageData.originalWidth = dimensions.width;
+                                this.currentImageData.originalHeight = dimensions.height;
+                                this.currentImageData.aspectRatio = dimensions.width / dimensions.height;
+                                this.adjustImageDimensionsToAspectRatio(dimensions.width, dimensions.height);
+                            }
+                        } catch (error) {}
+                    }
+                    this.updateImagePreview();
+                };
+                reader.readAsDataURL(file);
+            } catch (error) {
+                alert('Error loading file: ' + error.message);
+            }
+        }
         
-        try {
-                        const maxFileSize = 50 * 1024 * 1024; // 50MB limit
-            const supportedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
-            const supportedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
-            const supportedAudioTypes = ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac'];
-            /* @tweakable animated format detection */
-            const animatedFormats = ['image/gif', 'image/webp'];
-            
-            if (file.size > maxFileSize) {
-                alert('File size too large. Maximum allowed size is 50MB.');
+        async handleUrlInput() {
+            const url = this.imageUrlInput.value.trim();
+            if (!url) {
+                this.currentImageData = null;
+                this.updateImagePreview();
                 return;
             }
-            
-            const fileType = file.type;
-            const isImage = supportedImageTypes.includes(fileType);
-            const isVideo = supportedVideoTypes.includes(fileType);
-            const isAudio = supportedAudioTypes.includes(fileType);
-            const isAnimated = animatedFormats.includes(fileType);
-            
-            
-            if (!isImage && !isVideo && !isAudio) {
-                alert('Unsupported file type. Please select an image, video, or audio file.');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = async (e) => {
+            try {
+                new URL(url);
                 this.currentImageData = {
-                    type: fileType,
-                    data: e.target.result,
-                    name: file.name,
-                    size: file.size,
-                    isAnimated: isAnimated,
+                    type: 'url',
+                    data: url,
+                    name: url.split('/').pop() || 'Web Image',
+                    size: 0,
+                    isAnimated: false,
                     hasTransparency: false,
                     removeFrames: false
                 };
-                
-                                if (isImage) {
-                    try {
-                        const dimensions = await this.extractImageDimensions(e.target.result);
-                        if (dimensions.width && dimensions.height) {
-                            this.currentImageData.originalWidth = dimensions.width;
-                            this.currentImageData.originalHeight = dimensions.height;
-                            this.currentImageData.aspectRatio = dimensions.width / dimensions.height;
-                            
-                            // Auto-adjust dimensions maintaining aspect ratio
-                            this.adjustImageDimensionsToAspectRatio(dimensions.width, dimensions.height);
-                            
-                            console.log(`Image loaded: ${dimensions.width}x${dimensions.height} (ratio: ${dimensions.width / dimensions.height}) ${isAnimated ? '(animated)' : ''}`);
-                        }
-                    } catch (error) {
-                        console.warn('Could not extract image dimensions:', error);
-                    }
-                } else if (isVideo) {
-                    try {
-                        const dimensions = await this.extractVideoDimensions(e.target.result);
-                        if (dimensions.width && dimensions.height) {
-                            this.currentImageData.originalWidth = dimensions.width;
-                            this.currentImageData.originalHeight = dimensions.height;
-                            this.currentImageData.aspectRatio = dimensions.width / dimensions.height;
-                            
-                            this.adjustImageDimensionsToAspectRatio(dimensions.width, dimensions.height);
-                            
-                            console.log(`Video loaded: ${dimensions.width}x${dimensions.height} (ratio: ${dimensions.width / dimensions.height})`);
-                        }
-                    } catch (error) {
-                        console.warn('Could not extract video dimensions:', error);
-                    }
-                }
-                
                 this.updateImagePreview();
-                console.log(`Loaded ${isImage ? 'image' : isVideo ? 'video' : 'audio'}: ${file.name}`);
-            };
-            
-            reader.readAsDataURL(file);
-            
-        } catch (error) {
-            console.error('Error handling file selection:', error);
-            alert('Error loading file: ' + error.message);
-        }
-    }
-    
-        async handleUrlInput() {
-        const url = this.imageUrlInput.value.trim();
-        if (!url) {
-            this.currentImageData = null;
-            this.updateImagePreview();
-            return;
+                this.updateSoundControlsAvailability();
+            } catch (error) {}
         }
         
-        try {
-            // Validate URL format
-            new URL(url);
-            
-            this.currentImageData = {
-                type: 'url',
-                data: url,
-                name: url.split('/').pop() || 'Web Image',
-                size: 0,
-                isAnimated: false,
-                hasTransparency: false,
-                removeFrames: false
-            };
-            
-            this.updateImagePreview();
-            this.updateSoundControlsAvailability();
-        } catch (error) {
-            console.warn('Invalid URL format:', error);
-        }
-    }
-    
         updateMediaPreview() {
-        if (!this.currentMediaData) {
-            this.mediaPreview.innerHTML = 'No media selected';
-            return;
-        }
-        
-        const { type, data, name, isVideo, isAudio } = this.currentMediaData;
-        this.mediaPreview.innerHTML = '';
-        
-        if (isVideo) {
-            const video = document.createElement('video');
-            video.src = data;
-            video.controls = true;
-            video.muted = true;
-            video.style.maxWidth = '100%';
-            video.style.maxHeight = '100%';
-            
-            /* @tweakable aspect ratio preservation for video preview */
-            if (this.preserveAspectRatio.checked && this.currentMediaData && this.currentMediaData.aspectRatio) {
-                video.style.aspectRatio = this.currentMediaData.aspectRatio;
-                video.style.objectFit = 'contain';
+            if (!this.currentMediaData) {
+                this.mediaPreview.innerHTML = 'No media selected';
+                return;
             }
-            
-            this.mediaPreview.appendChild(video);
-            
-            // Add media info overlay
-            const mediaInfo = document.createElement('div');
-            mediaInfo.className = 'media-info';
-            mediaInfo.textContent = `📹 ${name} (${this.formatFileSize(this.currentMediaData.size)})`;
-            this.mediaPreview.appendChild(mediaInfo);
-            
-        } else if (isAudio) {
-            const audioContainer = document.createElement('div');
-            audioContainer.style.display = 'flex';
-            audioContainer.style.flexDirection = 'column';
-            audioContainer.style.alignItems = 'center';
-            audioContainer.style.justifyContent = 'center';
-            audioContainer.style.height = '100%';
-            audioContainer.innerHTML = `
-                <div style="font-size: 24px; margin-bottom: 10px;">🎵</div>
-                <audio controls style="width: 90%;">
-                    <source src="${data}" type="${type}">
-                </audio>
-            `;
-            this.mediaPreview.appendChild(audioContainer);
-            
-            // Add media info
-            const mediaInfo = document.createElement('div');
-            mediaInfo.className = 'media-info';
-            mediaInfo.textContent = `🎵 ${name} (${this.formatFileSize(this.currentMediaData.size)})`;
-            this.mediaPreview.appendChild(mediaInfo);
-        }
-    }
-    
-        async extractAudioMetadata(audioDataUrl) {
-        return new Promise((resolve, reject) => {
-            const audio = new Audio();
-            
-            audio.onloadedmetadata = () => {
-                const metadata = {
-                    duration: audio.duration || 0,
-                    sampleRate: audio.sampleRate || null,
-                    channels: audio.channels || null
-                };
-                resolve(metadata);
-            };
-            
-            audio.onerror = () => {
-                reject(new Error('Failed to load audio metadata'));
-            };
-            
-                        setTimeout(() => {
-                reject(new Error('Audio metadata extraction timeout'));
-            }, 5000);
-            
-            audio.src = audioDataUrl;
-        });
-    }
-    
-        updateSoundInfo() {
-        if (!this.imageSoundInfo) return;
-        
-        if (!this.currentSoundData) {
-            this.imageSoundInfo.textContent = 'No sound selected';
-            return;
-        }
-        
-        let infoText = `🔊 ${this.currentSoundData.name} (${this.formatFileSize(this.currentSoundData.size)})`;
-        
-        if (this.audioMetadata && this.audioMetadata.duration > 0) {
-            const duration = Math.ceil(this.audioMetadata.duration);
-            infoText += ` - ${this.formatDuration(duration)}`;
-        }
-        
-        this.imageSoundInfo.textContent = infoText;
-    }
-    
-    /* @tweakable improved audio seeking with proper progress bar functionality */
-        seekAudio() {
-        if (this.currentAudio && this.imageSoundProgress && this.currentAudio.duration && !isNaN(this.currentAudio.duration)) {
-            const seekPosition = parseFloat(this.imageSoundProgress.value) / 100;
-            const newTime = seekPosition * this.currentAudio.duration;
-            
-            try {
-                this.currentAudio.currentTime = Math.max(0, Math.min(newTime, this.currentAudio.duration));
-                console.log(`Audio seeked to ${Math.floor(newTime)}s (${Math.floor(seekPosition * 100)}%)`);
-            } catch (error) {
-                console.warn('Error seeking audio:', error);
-            }
-        }
-    }
-    
-        setupProgressTracking(audio) {
-        if (!this.imageSoundProgress || !this.imageSoundDuration || !audio) return;
-        
-        this.clearProgressTracking();
-        
-                const progressUpdateInterval = 200;
-        
-        // Wait for audio metadata to load
-        const startTracking = () => {
-            if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
-                this.audioProgressInterval = setInterval(() => {
-                    if (audio.duration > 0 && this.imageSoundProgress && this.imageSoundDuration && !audio.paused) {
-                        const progress = (audio.currentTime / audio.duration) * 100;
-                        
-                                                if (!this.imageSoundProgress.matches(':active')) {
-                            this.imageSoundProgress.value = Math.min(100, Math.max(0, progress));
-                        }
-                        
-                        const currentTime = Math.floor(audio.currentTime);
-                        const totalTime = Math.floor(audio.duration);
-                        this.imageSoundDuration.textContent = `${this.formatDuration(currentTime)} / ${this.formatDuration(totalTime)}`;
-                    }
-                }, progressUpdateInterval);
-            }
-        };
-        
-        if (audio.readyState >= 1) {
-            startTracking();
-        } else {
-            audio.addEventListener('loadedmetadata', startTracking, { once: true });
-        }
-        
-                audio.addEventListener('ended', () => {
-            this.clearProgressTracking();
-            if (this.imageSoundProgress) {
-                this.imageSoundProgress.value = 0;
-            }
-            if (this.imageSoundDuration && audio.duration) {
-                const totalTime = Math.floor(audio.duration);
-                this.imageSoundDuration.textContent = `0:00 / ${this.formatDuration(totalTime)}`;
-            }
-        });
-        
-                audio.addEventListener('pause', () => {
-            // Keep tracking even when paused to maintain current position display
-        });
-        
-        audio.addEventListener('play', () => {
-            if (!this.audioProgressInterval) {
-                startTracking();
-            }
-        });
-    }
-    
-        clearProgressTracking() {
-        if (this.audioProgressInterval) {
-            clearInterval(this.audioProgressInterval);
-            this.audioProgressInterval = null;
-        }
-    }
-    
-    updateImagePreview() {
-        if (!this.currentImageData) {
-            this.imagePreview.innerHTML = 'No image selected';
-            return;
-        }
-        
-        const { type, data, name, isAnimated, hasTransparency, removeFrames } = this.currentImageData;
-        const transparencyRequested = !!(this.aiTransparency && this.aiTransparency.checked);
-        const isPNG = (type.includes('png') || (typeof data === 'string' && data.startsWith('data:image/png')) || ((name||'').toLowerCase().endsWith('.png')));
-        const treatTransparent = hasTransparency || removeFrames || (transparencyRequested && isPNG);
-
-        if (type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = data;
-            img.alt = name;
-            
-             if (isAnimated || type === 'image/gif' || type === 'image/webp') {
-                img.style.imageRendering = 'auto';
-                img.style.objectFit = 'contain';
-                
-                if (type === 'image/gif') {
-                    console.log('Displaying animated GIF');
-                } else if (type === 'image/webp') {
-                    console.log('Displaying animated WebP');
+            const { type, data, name, isVideo, isAudio } = this.currentMediaData;
+            this.mediaPreview.innerHTML = '';
+            if (isVideo) {
+                const video = document.createElement('video');
+                video.src = data;
+                video.controls = true;
+                video.muted = true;
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '100%';
+                if (this.preserveAspectRatio.checked && this.currentMediaData && this.currentMediaData.aspectRatio) {
+                    video.style.aspectRatio = this.currentMediaData.aspectRatio;
+                    video.style.objectFit = 'contain';
                 }
+                this.mediaPreview.appendChild(video);
+                const mediaInfo = document.createElement('div');
+                mediaInfo.className = 'media-info';
+                mediaInfo.textContent = `📹 ${name} (${this.formatFileSize(this.currentMediaData.size)})`;
+                this.mediaPreview.appendChild(mediaInfo);
+            } else if (isAudio) {
+                const audioContainer = document.createElement('div');
+                audioContainer.style.display = 'flex';
+                audioContainer.style.flexDirection = 'column';
+                audioContainer.style.alignItems = 'center';
+                audioContainer.style.justifyContent = 'center';
+                audioContainer.style.height = '100%';
+                audioContainer.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 10px;">🎵</div>
+                    <audio controls style="width: 90%;">
+                        <source src="${data}" type="${type}">
+                    </audio>
+                `;
+                this.mediaPreview.appendChild(audioContainer);
+                const mediaInfo = document.createElement('div');
+                mediaInfo.className = 'media-info';
+                mediaInfo.textContent = `🎵 ${name} (${this.formatFileSize(this.currentMediaData.size)})`;
+                this.mediaPreview.appendChild(mediaInfo);
             }
-             if (hasTransparency || removeFrames) {
-                img.style.border = 'none';
-                img.style.boxShadow = 'none';
-                img.style.borderRadius = '0';
-                console.log('Preview frame styling removed due to transparency');
-            }
-            
-            this.imagePreview.innerHTML = '';
-            this.imagePreview.appendChild(img);
-        } else if (type.startsWith('video/')) {
-            const video = document.createElement('video');
-            video.src = data;
-            video.controls = true;
-            video.muted = true;
-            video.style.maxWidth = '100%';
-            video.style.maxHeight = '100%';
-            
-            /* @tweakable aspect ratio preservation for video preview */
-            if (this.preserveAspectRatio.checked && this.currentMediaData && this.currentMediaData.aspectRatio) {
-                video.style.aspectRatio = this.currentMediaData.aspectRatio;
-                video.style.objectFit = 'contain';
-            }
-            
-            this.imagePreview.innerHTML = '';
-            this.imagePreview.appendChild(video);
-        } else if (type.startsWith('audio/')) {
-            this.imagePreview.innerHTML = `🎵 ${name}<br><small>Audio file loaded</small>`;
-        } else if (type === 'url') {
-            const img = document.createElement('img');
-            img.src = data;
-            img.alt = name;
-            img.onerror = () => {
-                this.imagePreview.innerHTML = `❌ Failed to load image from URL<br><small>${data}</small>`;
-            };
-            this.imagePreview.innerHTML = '';
-            this.imagePreview.appendChild(img);
         }
         
-        this.updatePreview();
-    }
-    
+        async extractAudioMetadata(audioDataUrl) {
+            return new Promise((resolve, reject) => {
+                const audio = new Audio();
+                audio.onloadedmetadata = () => {
+                    const metadata = {
+                        duration: audio.duration || 0,
+                        sampleRate: audio.sampleRate || null,
+                        channels: audio.channels || null
+                    };
+                    resolve(metadata);
+                };
+                audio.onerror = () => {
+                    reject(new Error('Failed to load audio metadata'));
+                };
+                setTimeout(() => {
+                    reject(new Error('Audio metadata extraction timeout'));
+                }, 5000);
+                audio.src = audioDataUrl;
+            });
+        }
+        
+        updateSoundInfo() {
+            if (!this.imageSoundInfo) return;
+            if (!this.currentSoundData) {
+                this.imageSoundInfo.textContent = 'No sound selected';
+                return;
+            }
+            let infoText = `🔊 ${this.currentSoundData.name} (${this.formatFileSize(this.currentSoundData.size)})`;
+            if (this.audioMetadata && this.audioMetadata.duration > 0) {
+                const duration = Math.ceil(this.audioMetadata.duration);
+                infoText += ` - ${this.formatDuration(duration)}`;
+            }
+            this.imageSoundInfo.textContent = infoText;
+        }
+        
+        seekAudio() {
+            if (this.currentAudio && this.imageSoundProgress && this.currentAudio.duration && !isNaN(this.currentAudio.duration)) {
+                const seekPosition = parseFloat(this.imageSoundProgress.value) / 100;
+                const newTime = seekPosition * this.currentAudio.duration;
+                try {
+                    this.currentAudio.currentTime = Math.max(0, Math.min(newTime, this.currentAudio.duration));
+                } catch (error) {}
+            }
+        }
+        
+        setupProgressTracking(audio) {
+            if (!this.imageSoundProgress || !this.imageSoundDuration || !audio) return;
+            this.clearProgressTracking();
+            const progressUpdateInterval = 200;
+            const startTracking = () => {
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    this.audioProgressInterval = setInterval(() => {
+                        if (audio.duration > 0 && this.imageSoundProgress && this.imageSoundDuration && !audio.paused) {
+                            const progress = (audio.currentTime / audio.duration) * 100;
+                            if (!this.imageSoundProgress.matches(':active')) {
+                                this.imageSoundProgress.value = Math.min(100, Math.max(0, progress));
+                            }
+                            const currentTime = Math.floor(audio.currentTime);
+                            const totalTime = Math.floor(audio.duration);
+                            this.imageSoundDuration.textContent = `${this.formatDuration(currentTime)} / ${this.formatDuration(totalTime)}`;
+                        }
+                    }, progressUpdateInterval);
+                }
+            };
+            if (audio.readyState >= 1) {
+                startTracking();
+            } else {
+                audio.addEventListener('loadedmetadata', startTracking, { once: true });
+            }
+            audio.addEventListener('ended', () => {
+                this.clearProgressTracking();
+                if (this.imageSoundProgress) {
+                    this.imageSoundProgress.value = 0;
+                }
+                if (this.imageSoundDuration && audio.duration) {
+                    const totalTime = Math.floor(audio.duration);
+                    this.imageSoundDuration.textContent = `0:00 / ${this.formatDuration(totalTime)}`;
+                }
+            });
+            audio.addEventListener('pause', () => {});
+            audio.addEventListener('play', () => {
+                if (!this.audioProgressInterval) {
+                    startTracking();
+                }
+            });
+        }
+        
+        clearProgressTracking() {
+            if (this.audioProgressInterval) {
+                clearInterval(this.audioProgressInterval);
+                this.audioProgressInterval = null;
+            }
+        }
+        
+        updateImagePreview() {
+            if (!this.currentImageData) {
+                this.imagePreview.innerHTML = 'No image selected';
+                return;
+            }
+            const { type, data, name, isAnimated, hasTransparency, removeFrames } = this.currentImageData;
+            const transparencyRequested = !!(this.aiTransparency && this.aiTransparency.checked);
+            const isPNG = (type.includes('png') || (typeof data === 'string' && data.startsWith('data:image/png')) || ((name||'').toLowerCase().endsWith('.png')));
+            const treatTransparent = hasTransparency || removeFrames || (transparencyRequested && isPNG);
+            if (type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = data;
+                img.alt = name;
+                if (isAnimated || type === 'image/gif' || type === 'image/webp') {
+                    img.style.imageRendering = 'auto';
+                    img.style.objectFit = 'contain';
+                }
+                if (hasTransparency || removeFrames) {
+                    img.style.border = 'none';
+                    img.style.boxShadow = 'none';
+                    img.style.borderRadius = '0';
+                }
+                this.imagePreview.innerHTML = '';
+                this.imagePreview.appendChild(img);
+            } else if (type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = data;
+                video.controls = true;
+                video.muted = true;
+                video.style.maxWidth = '100%';
+                video.style.maxHeight = '100%';
+                if (this.preserveAspectRatio.checked && this.currentMediaData && this.currentMediaData.aspectRatio) {
+                    video.style.aspectRatio = this.currentMediaData.aspectRatio;
+                    video.style.objectFit = 'contain';
+                }
+                this.imagePreview.innerHTML = '';
+                this.imagePreview.appendChild(video);
+            } else if (type.startsWith('audio/')) {
+                this.imagePreview.innerHTML = `🎵 ${name}<br><small>Audio file loaded</small>`;
+            } else if (type === 'url') {
+                const img = document.createElement('img');
+                img.src = data;
+                img.alt = name;
+                img.onerror = () => {
+                    this.imagePreview.innerHTML = `❌ Failed to load image from URL<br><small>${data}</small>`;
+                };
+                this.imagePreview.innerHTML = '';
+                this.imagePreview.appendChild(img);
+            }
+            this.updatePreview();
+        }
     updatePreview() {
         if (!this.currentImageData) return;
         
@@ -711,8 +567,6 @@ export default class ImageDisplayManager {
             preview.style.opacity = settings.opacity / 100;
             preview.style.borderRadius = settings.borderRadius + 'px';
             preview.style.transform = `scale(${Math.min(settings.scale / 100, 1.5)}) rotate(${settings.rotation}deg)`;
-            
-            /* @tweakable conditional preview frame removal for transparency */
             if (!treatTransparent) {
                 preview.style.borderRadius = settings.borderRadius + 'px';
             
@@ -724,13 +578,10 @@ export default class ImageDisplayManager {
                     preview.style.boxShadow = `0 ${settings.shadowBlur}px ${settings.shadowBlur * 2}px rgba(0, 0, 0, 0.3)`;
                 }
             } else {
-                /* @tweakable complete preview frame removal for transparent images */
                 preview.style.borderRadius = '0';
                 preview.style.border = 'none';
                 preview.style.boxShadow = 'none';
             }
-            
-            // Apply filters
             const filters = [];
             if (settings.blur > 0) filters.push(`blur(${settings.blur}px)`);
             if (settings.brightness !== 100) filters.push(`brightness(${settings.brightness}%)`);
@@ -929,7 +780,6 @@ export default class ImageDisplayManager {
   mediaElement.style.borderRadius = '0';
   mediaElement.style.border = 'none';
   mediaElement.style.boxShadow = 'none';
-  // optional: make sure the element (and its wrapper) don’t paint a background
   mediaElement.style.background = 'transparent';
   if (mediaElement.parentElement) mediaElement.parentElement.style.background = 'transparent';
   console.log('Frame and border styling removed due to transparency setting');
@@ -965,7 +815,6 @@ export default class ImageDisplayManager {
             if (opts.register && this.app.uiManager && this.app.uiManager.addActiveItem) {
             const contentDescription = sourceData.name || 'Image';
             
-            // Check if this is a replay of an existing item
             const existingItem = this.app.uiManager.activeItems.find(item => 
                 item.type === 'image' && 
                 item.content === contentDescription && 
@@ -973,13 +822,11 @@ export default class ImageDisplayManager {
             );
             
             if (existingItem) {
-                // Update existing item with new element
                 existingItem.element = imageElement;
                 activeItemId = existingItem.id;
                 imageElement.dataset.activeItemId = activeItemId;
                 this.app.uiManager.updateActiveItemsDisplay();
             } else {
-                // Create new active item
                 activeItemId = this.app.uiManager.addActiveItem('image', contentDescription, imageElement, settings);
             }
         }
@@ -1179,7 +1026,7 @@ export default class ImageDisplayManager {
     canUseTransparency = () => {
   const isStatic = (this.aiAnim?.value || 'Static Image').toLowerCase().includes('static');
   const style = (this.aiStyle?.value || '').toLowerCase();
-  return isStatic; // keep simple: allow alpha only for static; tighten later if needed
+  return isStatic;
 };
 
     removeImageElement(element) {
@@ -1808,5 +1655,5 @@ export default class ImageDisplayManager {
         this.updateSoundInfo();
         this.removeAllImages();
         console.log('Current media and sound cleared');
-}
+    }
 }

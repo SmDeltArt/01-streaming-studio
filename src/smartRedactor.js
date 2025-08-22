@@ -9,7 +9,7 @@ export default class SmartRedactorManager {
         this.redactorPanel = null;
         this.readingVignette = null;
         
-        /* @tweakable AI API configuration and fallback settings */
+
         this.primaryAPI = 'websim'; // 'websim' or 'external'
         this.fallbackAPI = 'openai-free'; // fallback when websim fails
         this.maxRetryAttempts = 3;
@@ -40,6 +40,7 @@ export default class SmartRedactorManager {
         this.redactorPanel = document.getElementById('smartRedactorPanel');
         this.redactorPanelCollapse = document.getElementById('redactorPanelCollapse');
         this.redactorPanelClose = document.getElementById('redactorPanelClose');
+        this.redactorPanelExpand = document.getElementById('redactorPanelExpand');
         
         // Analysis controls
         this.analyzeContentBtn = document.getElementById('analyzeContentBtn');
@@ -106,6 +107,9 @@ export default class SmartRedactorManager {
     bindEvents() {
         this.smartRedactorBtn.addEventListener('click', () => this.togglePanel());
         this.redactorPanelCollapse.addEventListener('click', () => this.toggleCollapse());
+        if (this.redactorPanelExpand) {
+            this.redactorPanelExpand.addEventListener('click', () => this.toggleCollapse());
+        }
         this.redactorPanelClose.addEventListener('click', () => this.hidePanel());
         
         // Analysis events
@@ -243,27 +247,31 @@ export default class SmartRedactorManager {
         // Panel dragging
         const header = this.redactorPanel.querySelector('.smart-redactor-header');
         this.setupElementDragging(header, this.redactorPanel);
-        
+        const actions = this.redactorPanel.querySelector('.smart-redactor-actions');
+        if (actions) this.setupElementDragging(actions, this.redactorPanel);
+
         // Vignette dragging
         const vignetteHeader = this.readingVignette.querySelector('.vignette-header');
         this.setupElementDragging(vignetteHeader, this.readingVignette, true);
     }
-    
+
     setupElementDragging(dragHandle, element, isVignette = false) {
+        if (!dragHandle) return;
         let isDragging = false;
         let startX, startY, initialX, initialY;
-        
+
         dragHandle.addEventListener('mousedown', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
             isDragging = true;
             element.classList.add('dragging');
-            
+
             startX = e.clientX;
             startY = e.clientY;
-            
+
             const rect = element.getBoundingClientRect();
             initialX = rect.left;
             initialY = rect.top;
-            
+
             e.preventDefault();
         });
         
@@ -323,201 +331,98 @@ export default class SmartRedactorManager {
     }
     
     /* @tweakable enhanced external AI API integration with verified working free service options */
-    async createExternalAI() {
-        /* @tweakable verified working free AI API endpoints with proper authentication and documentation */
-        const freeAIAPIs = [
-            {
-                name: 'Groq Cloud API (Free Tier)',
-                endpoint: 'https://api.groq.com/openai/v1/chat/completions',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer gsk_demo_key_replace_with_real_key'
-                },
-                requestFormat: (messages) => ({
-                    model: 'llama3-8b-8192',
-                    messages: messages,
-                    max_tokens: 1024,
-                    temperature: 0.7,
-                    stream: false
-                }),
-                responseExtractor: (data) => {
-                    return data.choices?.[0]?.message?.content || '';
-                },
-                /* @tweakable API documentation and signup information for Groq free tier */
-                documentation: 'https://console.groq.com - Free tier: 30 requests/minute, 6000 requests/day'
-            },
-            {
-                name: 'Together AI (Free Tier)',
-                endpoint: 'https://api.together.xyz/v1/chat/completions',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer demo_together_key'
-                },
-                requestFormat: (messages) => ({
-                    model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-                    messages: messages,
-                    max_tokens: 1000,
-                    temperature: 0.7
-                }),
-                responseExtractor: (data) => {
-                    return data.choices?.[0]?.message?.content || '';
-                },
-                /* @tweakable API documentation and signup information for Together AI free tier */
-                documentation: 'https://api.together.xyz - Free tier: $5 credit, pay-per-use after'
-            },
-            {
-                name: 'Perplexity AI (Free Tier)',
-                endpoint: 'https://api.perplexity.ai/chat/completions',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer pplx-demo-key'
-                },
-                requestFormat: (messages) => ({
-                    model: 'llama-3.1-sonar-small-128k-online',
-                    messages: messages,
-                    max_tokens: 1000,
-                    temperature: 0.7
-                }),
-                responseExtractor: (data) => {
-                    return data.choices?.[0]?.message?.content || '';
-                },
-                /* @tweakable API documentation and signup information for Perplexity AI free tier */
-                documentation: 'https://docs.perplexity.ai - Free tier: $5 credit with web search'
-            },
-            {
-                name: 'Cohere AI (Free Tier)',
-                endpoint: 'https://api.cohere.ai/v1/chat',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer demo_cohere_key'
-                },
-                requestFormat: (messages) => ({
-                    model: 'command-light',
-                    message: messages[messages.length - 1].content,
-                    chat_history: messages.slice(0, -1).map(msg => ({
-                        role: msg.role === 'user' ? 'USER' : 'CHATBOT',
-                        message: msg.content
-                    })),
-                    max_tokens: 1000,
-                    temperature: 0.7
-                }),
-                responseExtractor: (data) => {
-                    return data.text || '';
-                },
-                /* @tweakable API documentation and signup information for Cohere AI free tier */
-                documentation: 'https://docs.cohere.ai - Free tier: 1000 calls/month'
-            },
-            {
-                name: 'Hugging Face Inference API (Free)',
-                endpoint: 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                requestFormat: (messages) => ({
-                    inputs: messages[messages.length - 1].content,
-                    parameters: {
-                        max_new_tokens: 500,
-                        temperature: 0.7,
-                        return_full_text: false
-                    }
-                }),
-                responseExtractor: (data) => {
-                    if (Array.isArray(data) && data.length > 0) {
-                        return data[0].generated_text || data[0].text || '';
-                    }
-                    return data.generated_text || data.text || '';
-                },
-                /* @tweakable API documentation and signup information for Hugging Face free tier */
-                documentation: 'https://huggingface.co/docs/api-inference - Free tier: Rate limited, no API key required'
+    // REPLACE the whole method
+async createExternalAI() {
+  // read user prefs/keys from Settings
+  const pref = (localStorage.getItem('TXT_AI_PREF') || 'auto').toLowerCase();
+  const keys = {
+    GROQ_API_KEY:     localStorage.getItem('GROQ_API_KEY')     || '',
+    COHERE_API_KEY:   localStorage.getItem('COHERE_API_KEY')   || '',
+    TOGETHER_API_KEY: localStorage.getItem('TOGETHER_API_KEY') || ''
+  };
+
+  // Build priority by preference; skip providers with no key
+  const base = [
+    keys.GROQ_API_KEY     && { name:'Groq',     endpoint:'https://api.groq.com/openai/v1/chat/completions',
+      headers:()=>({'Authorization':`Bearer ${keys.GROQ_API_KEY}`,'Content-Type':'application/json'}),
+      req:(messages)=>({ model:'llama3-8b-8192', messages, max_tokens:800, temperature:0.7 }),
+      ext:(d)=>d?.choices?.[0]?.message?.content || '' },
+
+    keys.COHERE_API_KEY   && { name:'Cohere',   endpoint:'https://api.cohere.ai/v1/chat',
+      headers:()=>({'Authorization':`Bearer ${keys.COHERE_API_KEY}`,'Content-Type':'application/json'}),
+      req:(messages)=>({
+        model:'command-light',
+        message: messages[messages.length-1]?.content || '',
+        chat_history: messages.slice(0,-1).map(m=>({ role: m.role==='user'?'USER':'CHATBOT', message:m.content })),
+        max_tokens:800, temperature:0.7
+      }),
+      ext:(d)=>d?.text || '' },
+
+    keys.TOGETHER_API_KEY && { name:'Together', endpoint:'https://api.together.xyz/v1/chat/completions',
+      headers:()=>({'Authorization':`Bearer ${keys.TOGETHER_API_KEY}`,'Content-Type':'application/json'}),
+      req:(messages)=>({ model:'mistralai/Mixtral-8x7B-Instruct-v0.1', messages, max_tokens:800, temperature:0.7 }),
+      ext:(d)=>d?.choices?.[0]?.message?.content || '' }
+  ].filter(Boolean);
+
+  const orderByPref = {
+    groq:     ['Groq','Cohere','Together'],
+    cohere:   ['Cohere','Groq','Together'],
+    together: ['Together','Groq','Cohere'],
+    auto:     ['Groq','Cohere','Together']
+  }[pref] || ['Groq','Cohere','Together'];
+
+  // Reorder base according to preference
+  const providers = orderByPref
+    .map(n => base.find(b => b.name === n))
+    .filter(Boolean);
+
+  const apiTimeout = 20000;
+  const maxRetries = 1;
+
+  if (!providers.length) {
+    console.warn('[Redactor] No text API keys found; using offline fallback.');
+    return this.createFallbackAI();
+  }
+
+  return {
+    completions: {
+      create: async ({ messages }) => {
+        let lastErr;
+        for (const p of providers) {
+          for (let attempt=0; attempt<=maxRetries; attempt++) {
+            try {
+              const controller = new AbortController();
+              const to = setTimeout(()=>controller.abort(), apiTimeout);
+              const res = await fetch(p.endpoint, {
+                method: 'POST',
+                headers: p.headers(),
+                body: JSON.stringify(p.req(messages)),
+                signal: controller.signal
+              });
+              clearTimeout(to);
+
+              if (!res.ok) {
+                const txt = await res.text().catch(()=> '');
+                throw new Error(`${p.name} HTTP ${res.status}: ${txt.slice(0,200)}`);
+              }
+              const data = await res.json();
+              const content = (p.ext(data) || '').trim();
+              if (content) return { content };
+              throw new Error(`${p.name} returned empty content`);
+            } catch (e) {
+              lastErr = e;
+              console.warn(`[Redactor] ${p.name} failed (try ${attempt+1}):`, e.message);
             }
-        ];
-        
-        /* @tweakable external API timeout and retry configuration for working connections */
-        const apiTimeout = 20000; // 20 seconds for better reliability
-        const maxRetries = 2;
-        /* @tweakable API connection status logging for debugging external API issues */
-        let connectionAttempts = 0;
-        
-        return {
-            completions: {
-                create: async (options) => {
-                    let lastError;
-                    connectionAttempts++;
-                    
-                    console.log(`🔗 Attempting external AI API connection (attempt ${connectionAttempts})...`);
-                    
-                    // Try each API in order
-                    for (const api of freeAIAPIs) {
-                        for (let retry = 0; retry <= maxRetries; retry++) {
-                            try {
-                                console.log(`🔄 Trying ${api.name} (attempt ${retry + 1}/${maxRetries + 1})`);
-                                console.log(`📋 API Documentation: ${api.documentation}`);
-                                
-                                const controller = new AbortController();
-                                const timeoutId = setTimeout(() => controller.abort(), apiTimeout);
-                                
-                                const requestBody = api.requestFormat(options.messages);
-                                
-                                const response = await fetch(api.endpoint, {
-                                    method: 'POST',
-                                    headers: api.headers,
-                                    body: JSON.stringify(requestBody),
-                                    signal: controller.signal
-                                });
-                                
-                                clearTimeout(timeoutId);
-                                
-                                if (!response.ok) {
-                                    const errorText = await response.text();
-                                    throw new Error(`HTTP ${response.status}: ${response.statusText} - ${errorText}`);
-                                }
-                                
-                                const data = await response.json();
-                                const content = api.responseExtractor(data);
-                                
-                                if (content && content.trim()) {
-                                    console.log(`✅ Successfully connected to ${api.name}`);
-                                    console.log(`📖 Documentation: ${api.documentation}`);
-                                    return { content: content.trim() };
-                                } else {
-                                    throw new Error('Empty or invalid response content');
-                                }
-                                
-                            } catch (error) {
-                                lastError = error;
-                                console.warn(`❌ ${api.name} attempt ${retry + 1} failed:`, error.message);
-                                
-                                if (retry < maxRetries) {
-                                    /* @tweakable retry delay with exponential backoff for better API reliability */
-                                    const retryDelay = Math.min(2000 * Math.pow(2, retry), 8000);
-                                    console.log(`⏳ Retrying in ${retryDelay}ms...`);
-                                    await new Promise(resolve => setTimeout(resolve, retryDelay));
-                                }
-                            }
-                        }
-                    }
-                    
-                    /* @tweakable comprehensive error message with API documentation links when all external APIs fail */
-                    const apiDocumentationLinks = freeAIAPIs.map(api => `• ${api.name}: ${api.documentation}`).join('\n');
-                    
-                    const errorMessage = `All external AI APIs failed after ${connectionAttempts} connection attempts.
-
-Available Free AI APIs for setup:
-${apiDocumentationLinks}
-
-To use these APIs:
-1. Sign up for a free account at any of the above services
-2. Get your API key
-3. Replace the demo keys in the code with your real API keys
-
-Last error: ${lastError?.message || 'Unknown error'}`;
-                    
-                    console.error('🚫 All external AI APIs failed:', errorMessage);
-                    throw new Error(errorMessage);
-                }
-            }
-        };
+          }
+        }
+        console.warn('[Redactor] All providers failed; using offline fallback. Last error:', lastErr?.message);
+        const fb = await this.createFallbackAI();
+        return fb.completions.create({ messages });
+      }
     }
+  };
+}
+
     
     /* @tweakable enhanced fallback AI implementation for complete offline functionality */
     async createFallbackAI() {

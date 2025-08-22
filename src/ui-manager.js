@@ -64,8 +64,9 @@ export default class UIManager {
             });
         }
 
-                this.initializeThemeToggle();
+        this.initializeThemeToggle();
         this.initializeActiveItemsManager();
+        this.initializeAISettingsControls();
     }
 
         initializeThemeToggle() {
@@ -177,7 +178,8 @@ export default class UIManager {
             const iconMap = {
                 'text': '📝',
                 'image': '🖼️',
-                'voice': '🎙️'
+                'voice': '🎙️',
+                'vignette': '📝',
             };
             const icon = iconMap[item.type] || '❓';
             const displayNumber = index + 1;
@@ -402,11 +404,15 @@ export default class UIManager {
     }
 
     showSettingsModal() {
-        if (this.settingsModal) {
-            this.settingsModal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-    }
+  if (this.settingsModal) {
+    // <-- add this line
+    this.loadAISettingsIntoUI?.();
+
+    this.settingsModal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  }
+}
+
 
     hideSettingsModal() {
         if (this.settingsModal) {
@@ -462,7 +468,136 @@ export default class UIManager {
             }
         }
     }
-    
+    initializeAISettingsControls() {
+  // Inputs (create these IDs in your settingsModal HTML if not present)
+  const $ = (id) => document.getElementById(id);
+
+  this.imgPref = $('imgPref');
+  this.txtPref = $('txtPref');
+
+  this.keyInputs = [
+    'OPENAI_API_KEY','XAI_API_KEY','FAL_API_KEY',
+    'GROQ_API_KEY','COHERE_API_KEY','TOGETHER_API_KEY'
+  ].reduce((m,k)=> (m[k]=$(`${k}`), m), {});
+
+  this.pollinationsCrop = $('POLLINATIONS_CROP');
+  this.imgAllowAlpha    = $('IMG_ALLOW_TRANSPARENCY');
+
+  this.settingsSaveBtn   = $('settingsSave');
+  this.settingsExportBtn = $('settingsExport');
+  this.settingsImportBtn = $('settingsImport');
+
+  // Load current values into the UI
+  this.loadAISettingsIntoUI();
+
+  // Bind
+  this.settingsSaveBtn?.addEventListener('click', () => this.saveAISettings(true));
+  this.settingsExportBtn?.addEventListener('click', () => this.exportAISettings());
+  this.settingsImportBtn?.addEventListener('click', () => this.importAISettings());
+  this.imgPref?.addEventListener('change', () => this.updateAPIKeyVisibility());
+  this.txtPref?.addEventListener('change', () => this.updateAPIKeyVisibility());
+  // Reflect changes live (optional)
+  this.imgPref?.addEventListener('change', () => this.saveAISettings(false));
+  this.txtPref?.addEventListener('change', () => this.saveAISettings(false));
+}
+
+loadAISettingsIntoUI() {
+  const get = (k, d='') => localStorage.getItem(k) ?? d;
+
+  if (this.imgPref) this.imgPref.value = get('IMG_AI_PREF','auto');
+  if (this.txtPref) this.txtPref.value = get('TXT_AI_PREF','auto');
+
+  Object.entries(this.keyInputs || {}).forEach(([k, el]) => {
+    if (el) el.value = get(k,'');
+  });
+
+  if (this.pollinationsCrop) this.pollinationsCrop.value = get('POLLINATIONS_CROP','24');
+  if (this.imgAllowAlpha)   this.imgAllowAlpha.checked = get('IMG_ALLOW_TRANSPARENCY','1') === '1';
+  this.updateAPIKeyVisibility?.();
+}
+updateAPIKeyVisibility() {
+  const imgSel = (this.imgPref?.value || 'auto').toLowerCase();
+  const txtSel = (this.txtPref?.value || 'auto').toLowerCase();
+
+  const map = {
+    OPENAI_API_KEY:  { scope: 'img', prov: 'openai' },
+    XAI_API_KEY:     { scope: 'img', prov: 'xai' },
+    FAL_API_KEY:     { scope: 'img', prov: 'fal' },
+    GROQ_API_KEY:    { scope: 'txt', prov: 'groq' },
+    COHERE_API_KEY:  { scope: 'txt', prov: 'cohere' },
+    TOGETHER_API_KEY:{ scope: 'txt', prov: 'together' }
+  };
+
+  // You already built this.keyInputs = { OPENAI_API_KEY: <el>, ... }
+  for (const [id, el] of Object.entries(this.keyInputs || {})) {
+    if (!el) continue;
+    const info = map[id];
+    if (!info) continue;
+
+    const shouldShow =
+      (info.scope === 'img' && imgSel === info.prov) ||
+      (info.scope === 'txt' && txtSel === info.prov);
+
+    // prefer the wrapper row if present
+    const row = document.getElementById(`row-${id}`) || el.closest('.api-key-row') || el;
+    row.style.display = shouldShow ? '' : 'none';
+  }
+}
+
+saveAISettings(showToast) {
+  const put = (k,v) => (v && v.length) ? localStorage.setItem(k, v) : localStorage.removeItem(k);
+
+  if (this.imgPref) put('IMG_AI_PREF', this.imgPref.value);
+  if (this.txtPref) put('TXT_AI_PREF', this.txtPref.value);
+
+  Object.entries(this.keyInputs || {}).forEach(([k, el]) => {
+    if (el) put(k, (el.value || '').trim());
+  });
+
+  if (this.pollinationsCrop) put('POLLINATIONS_CROP', String(Math.max(0, parseInt(this.pollinationsCrop.value||'24',10))));
+  if (this.imgAllowAlpha)    put('IMG_ALLOW_TRANSPARENCY', this.imgAllowAlpha.checked ? '1' : '0');
+
+  // Let other modules react
+  window.dispatchEvent(new CustomEvent('settings:updated', {
+    detail: {
+      IMG_AI_PREF: localStorage.getItem('IMG_AI_PREF'),
+      TXT_AI_PREF: localStorage.getItem('TXT_AI_PREF')
+    }
+  }));
+
+  if (showToast) alert('Settings saved.');
+}
+
+exportAISettings() {
+  const keys = [
+    'IMG_AI_PREF','TXT_AI_PREF','POLLINATIONS_CROP','IMG_ALLOW_TRANSPARENCY',
+    'OPENAI_API_KEY','XAI_API_KEY','FAL_API_KEY','GROQ_API_KEY','COHERE_API_KEY','TOGETHER_API_KEY'
+  ];
+  const obj = keys.reduce((m,k)=> (m[k]=localStorage.getItem(k)||'', m), {});
+  const blob = new Blob([JSON.stringify(obj,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'streaming-studio-settings.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 800);
+}
+
+importAISettings() {
+  const inp = document.createElement('input');
+  inp.type='file'; inp.accept='application/json';
+  inp.onchange = async () => {
+    const f = inp.files?.[0]; if (!f) return;
+    const text = await f.text().catch(()=>null); if (!text) return;
+    try {
+      const j = JSON.parse(text);
+      Object.entries(j).forEach(([k,v]) => { if (typeof v === 'string') localStorage.setItem(k,v); });
+      this.loadAISettingsIntoUI();
+      window.dispatchEvent(new CustomEvent('settings:updated', { detail: j }));
+      alert('Settings imported.');
+    } catch { alert('Invalid settings file'); }
+  };
+  inp.click();
+}
+
     handleResize() {
         if (window.innerWidth <= 768 && !this.panelCollapsed) {
             this.togglePanel();

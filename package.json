@@ -1,4 +1,4 @@
-{
+
   "name": "streaming-studio",
   "version": "1.0.0",
   "type": "module",
@@ -9,3 +9,20 @@
     "jest": "^29.7.0"
   }
 }
+
+  "name": "01-streaming-studio",
+  "private": true,
+  "type": "module",
+  "version": "0.0.0",
+  "description": "SmDeltArt Streaming Studio — static site with minimal tests",
+  "scripts": {
+    "test": "vitest run --reporter=basic",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^24.0.0",
+    "vitest": "^1.6.0"
+  },
+  "engines": { "node": ">=18" }
+}
+

@@ -33,7 +33,11 @@
                         <span id="statusText">Ready</span>
                     </div>
                 </div>
-                
+                <button id="iframeRecordBtn" class="btn secondary" title="Record IFrame">
+                    <span class="icon">🖼️</span>
+                    <span class="label">Record IFrame</span>
+                </button>
+
                 <div class="control-section">
                     <h3>Media Source</h3>
                     <div class="media-upload-group">
@@ -78,6 +82,32 @@
                         <button class="quick-link-btn" data-url="about:blank">Blank Page</button>
                     </div>
                 </div>
+
+                    <button id="smartRedactorBtn" class="btn smart-redactor-btn" title="AI Smart Redactor (A)">
+                        <span class="icon">🤖</span>
+                        <span class="label">+ AI Redactor <span class="shortcut">(A)</span></span>
+                    </button>
+                                             
+                    <button id="voiceRecorderBtn" class="btn voice-recorder-btn" title="AI Voice Recorder (R)">
+                        <span class="icon">🎙️</span>
+                        <span class="label">Voice <span class="shortcut">(R)</span></span>
+                    </button>
+                    
+                    <button id="textBtn" class="btn text-btn" title="Add Text Display (T)">
+                        <span class="icon">📝</span>
+                        <span class="label">+ Text <span class="shortcut">(T)</span></span>
+                    </button>
+                    
+                    <button id="imageBtn" class="btn image-btn" title="Add Image Display (I)">
+                        <span class="icon">🖼️</span>
+                        <span class="label">+ Image <span class="shortcut">(I)</span></span>
+                    </button>
+                    
+                                        
+                    <button id="infoBtn" class="btn info-btn" title="Recording Tips & Shortcuts (I)">
+                        <span class="icon">ℹ️</span>
+                        <span class="label">Info <span class="shortcut">(I)</span></span>
+                    </button>
 
                 <div class="control-section">
                     <h3>Camera & Audio</h3>
@@ -224,7 +254,6 @@
                         <span id="recordingStatusText">Ready to Record</span>
                         <span id="recordingTimer" style="display: none;">00:00</span>
                     </div>
-                    
                     <button id="recordBtn" class="btn record-btn" title="Start Recording (R)" data-recording="false">
                         <span class="icon">⏺️</span>
                         <span class="label">Start Recording <span class="shortcut">(R)</span></span>
@@ -237,35 +266,7 @@
                         <span class="icon">⏹️</span>
                         <span class="label">Stop <span class="shortcut">(S)</span></span>
                     </button>
-                    <button id="fullscreenBtn" class="btn fullscreen-btn" title="Toggle Fullscreen (F)">
-                        <span class="icon">🖥️</span>
-                        <span class="label">Fullscreen <span class="shortcut">(F)</span></span>
-                    </button>
                     
-                    <button id="infoBtn" class="btn info-btn" title="Recording Tips & Shortcuts (I)">
-                        <span class="icon">ℹ️</span>
-                        <span class="label">Info <span class="shortcut">(I)</span></span>
-                    </button>
-                    
-                    <button id="voiceRecorderBtn" class="btn voice-recorder-btn" title="AI Voice Recorder (R)">
-                        <span class="icon">🎙️</span>
-                        <span class="label">Voice <span class="shortcut">(R)</span></span>
-                    </button>
-                    
-                    <button id="textBtn" class="btn text-btn" title="Add Text Display (T)">
-                        <span class="icon">📝</span>
-                        <span class="label">+ Text <span class="shortcut">(T)</span></span>
-                    </button>
-                    
-                    <button id="imageBtn" class="btn image-btn" title="Add Image Display (I)">
-                        <span class="icon">🖼️</span>
-                        <span class="label">+ Image <span class="shortcut">(I)</span></span>
-                    </button>
-                    
-                    <button id="smartRedactorBtn" class="btn smart-redactor-btn" title="AI Smart Redactor (A)">
-                        <span class="icon">🤖</span>
-                        <span class="label">+ AI Redactor <span class="shortcut">(A)</span></span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -306,13 +307,13 @@
         </div>
 
         <!-- Settings Modal -->
-        <div class="settings-modal" id="settingsModal">
-            <div class="settings-modal-content">
-                <div class="settings-modal-header">
+        <div class="info-modal" id="settingsModal">
+            <div class="info-modal-content">
+                <div class="info-modal-header">
                     <h3>⚙️ Settings</h3>
-                    <button class="settings-close-btn" id="settingsCloseBtn">✕</button>
+                    <button class="info-close-btn" id="settingsCloseBtn">✕</button>
                 </div>
-                <div class="settings-modal-body">
+                <div class="info-modal-body">
                     <div class="theme-toggle-section">
                         <h4>🎨 Interface Theme</h4>
                         <div class="theme-toggle-control">
@@ -323,9 +324,39 @@
                                 <div class="theme-toggle-label">Dark Text Mode</div>
                                 <div class="theme-toggle-description">Switch panels to use dark text on light backgrounds for better readability</div>
                             </div>
-                        </div>
+                        </div>                         
                     </div>
-                    
+                    <div class="api-key-row" id="row-OPENAI_API_KEY">
+  <label for="OPENAI_API_KEY">OpenAI key</label>
+  <input id="OPENAI_API_KEY" type="password" placeholder="sk-..." />
+</div>
+
+<div class="api-key-row" id="row-XAI_API_KEY">
+  <label for="XAI_API_KEY">xAI key</label>
+  <input id="XAI_API_KEY" type="password" placeholder="xai-..." />
+</div>
+
+<div class="api-key-row" id="row-FAL_API_KEY">
+  <label for="FAL_API_KEY">fal.ai key</label>
+  <input id="FAL_API_KEY" type="password" placeholder="fal_sk_..." />
+</div>
+
+<div class="api-key-row" id="row-GROQ_API_KEY">
+  <label for="GROQ_API_KEY">Groq key</label>
+  <input id="GROQ_API_KEY" type="password" placeholder="gsk_..." />
+</div>
+
+<div class="api-key-row" id="row-COHERE_API_KEY">
+  <label for="COHERE_API_KEY">Cohere key</label>
+  <input id="COHERE_API_KEY" type="password" placeholder="..." />
+</div>
+
+<div class="api-key-row" id="row-TOGETHER_API_KEY">
+  <label for="TOGETHER_API_KEY">Together key</label>
+  <input id="TOGETHER_API_KEY" type="password" placeholder="..." />
+</div>
+
+
                     <div class="control-section">
                         <h3>Cursor Effects</h3>
                         <div class="toggle-setting">
@@ -587,6 +618,7 @@
                 <button class="text-action-btn" id="previewTextBtn">👁 Preview</button>
                 <button class="text-action-btn" id="saveTextBtn">💾 Save</button>
                 <button class="text-action-btn" id="loadTextBtn">📁 Load</button>
+                <button class="text-action-btn" id="textPanelExpand" title="Expand">+</button>
             </div>
         </div>
 
@@ -838,6 +870,7 @@
                 <button class="image-action-btn" id="saveImageBtn">💾 Save</button>
                 <button class="image-action-btn" id="loadImageBtn">📁 Load</button>
                 <button class="image-action-btn danger" id="removeImageBtn">🗑 Remove</button>
+                <button class="image-action-btn" id="imagePanelExpand" title="Expand">+</button>
             </div>
         </div>
 
@@ -968,6 +1001,7 @@
                 <button class="voice-action-btn primary" id="voiceSaveToActiveBtn">💾 Save to Active</button>
                 <button class="voice-action-btn secondary" id="voiceExportBtn">📤 Export Audio</button>
                 <button class="voice-action-btn" id="voiceSettingsBtn">⚙️ Settings</button>
+                <button class="voice-action-btn" id="voicePanelExpand" title="Expand">+</button>
             </div>
         </div>
           <!-- Smart Redactor Control Panel -->
@@ -1053,6 +1087,7 @@
                 <button class="redactor-action-btn secondary" id="saveRedactorBtn">💾 Save Content</button>
                 <button class="redactor-action-btn" id="loadRedactorBtn">📁 Load Content</button>
                 <button class="redactor-action-btn danger" id="removeContentBtn">🗑 Remove All</button>
+                <button class="redactor-action-btn" id="redactorPanelExpand" title="Expand">+</button>
             </div>
         </div>
 
