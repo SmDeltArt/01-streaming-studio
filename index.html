@@ -78,6 +78,75 @@
                         <button class="quick-link-btn" data-url="about:blank">Blank Page</button>
                     </div>
                 </div>
+
+                <div class="control-section">
+                    <h3>Iframe Size</h3>
+                    <div class="iframe-size-controls">
+                        <div class="size-control-group">
+                            <label>Width:</label>
+                            <input type="range" id="iframeWidth" min="300" max="1920" value="800" step="50">
+                            <span id="iframeWidthValue">800px</span>
+                        </div>
+                        <div class="size-control-group">
+                            <label>Height:</label>
+                            <input type="range" id="iframeHeight" min="200" max="1080" value="600" step="50">
+                            <span id="iframeHeightValue">600px</span>
+                        </div>
+                        <div class="iframe-controls-enhanced">
+                            <div class="aspect-ratio-control">
+                                <label>
+                                    <input type="checkbox" id="lockAspectRatio" checked>
+                                    Lock Aspect Ratio
+                                </label>
+                                <span id="currentAspectRatio">4:3</span>
+                            </div>
+                            
+                            <div class="iframe-size-presets">
+                                <h4>Standard Sizes</h4>
+                                <div class="preset-grid">
+                                    <button class="size-preset-btn" data-width="800" data-height="600">800×600</button>
+                                    <button class="size-preset-btn" data-width="1024" data-height="768">1024×768</button>
+                                    <button class="size-preset-btn" data-width="1280" data-height="720">1280×720 (HD)</button>
+                                    <button class="size-preset-btn" data-width="1920" data-height="1080">1920×1080 (FHD)</button>
+                                </div>
+                                
+                                <h4>Mobile & Tablet</h4>
+                                <div class="preset-grid">
+                                    <button class="size-preset-btn" data-width="375" data-height="667">iPhone</button>
+                                    <button class="size-preset-btn" data-width="768" data-height="1024">iPad</button>
+                                    <button class="size-preset-btn" data-width="414" data-height="896">iPhone Pro</button>
+                                    <button class="size-preset-btn" data-width="1024" data-height="1366">iPad Pro</button>
+                                </div>
+                                
+                                <h4>Quick Scale</h4>
+                                <div class="scale-controls">
+                                    <button class="scale-btn" data-scale="0.5">50%</button>
+                                    <button class="scale-btn" data-scale="0.75">75%</button>
+                                    <button class="scale-btn" data-scale="1.0">100%</button>
+                                    <button class="scale-btn" data-scale="1.25">125%</button>
+                                    <button class="scale-btn" data-scale="1.5">150%</button>
+                                </div>
+                            </div>
+                            
+                            <div class="custom-size-inputs">
+                                <h4>Custom Size</h4>
+                                <div class="input-group">
+                                    <div class="input-field">
+                                        <label>W:</label>
+                                        <input type="number" id="customWidth" min="200" max="2560" placeholder="800">
+                                        <span>px</span>
+                                    </div>
+                                    <div class="input-field">
+                                        <label>H:</label>
+                                        <input type="number" id="customHeight" min="150" max="1600" placeholder="600">
+                                        <span>px</span>
+                                    </div>
+                                    <button id="applyCustomSize" class="apply-btn">Apply</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                     <button id="smartRedactorBtn" class="btn smart-redactor-btn" title="AI Smart Redactor (A)">
                         <span class="icon">🤖</span>

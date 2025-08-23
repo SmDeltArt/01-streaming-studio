@@ -86,6 +86,23 @@ class StreamingStudio {
         this.hideMediaControls = document.getElementById('hideMediaControls');
         this.autoplayMedia = document.getElementById('autoplayMedia');
         
+        // Iframe size controls
+        this.iframeWidth = document.getElementById('iframeWidth');
+        this.iframeHeight = document.getElementById('iframeHeight');
+        this.iframeWidthValue = document.getElementById('iframeWidthValue');
+        this.iframeHeightValue = document.getElementById('iframeHeightValue');
+        
+        // Enhanced iframe size controls
+        this.lockAspectRatio = document.getElementById('lockAspectRatio');
+        this.currentAspectRatio = document.getElementById('currentAspectRatio');
+        this.customWidth = document.getElementById('customWidth');
+        this.customHeight = document.getElementById('customHeight');
+        this.applyCustomSize = document.getElementById('applyCustomSize');
+        
+        this.baseWidth = 800;
+        this.baseHeight = 600;
+        this.currentAspectRatioValue = this.baseWidth / this.baseHeight;
+        
         this.cameraBtn = document.getElementById('cameraBtn');
         this.micBtn = document.getElementById('micBtn');
         this.recordBtn = document.getElementById('recordBtn');
@@ -195,6 +212,48 @@ class StreamingStudio {
                         this.urlInput.value = url;
                         this.loadContent();
                     }
+                });
+            });
+            
+            // Iframe size controls
+            if (this.iframeWidth) {
+                this.iframeWidth.addEventListener('input', () => this.updateIframeSize());
+            }
+            if (this.iframeHeight) {
+                this.iframeHeight.addEventListener('input', () => this.updateIframeSize());
+            }
+            
+            // Enhanced iframe size controls
+            if (this.lockAspectRatio) {
+                this.lockAspectRatio.addEventListener('change', () => this.updateAspectRatioDisplay());
+            }
+            
+            if (this.customWidth) {
+                this.customWidth.addEventListener('input', () => this.handleCustomSizeInput('width'));
+            }
+            
+            if (this.customHeight) {
+                this.customHeight.addEventListener('input', () => this.handleCustomSizeInput('height'));
+            }
+            
+            if (this.applyCustomSize) {
+                this.applyCustomSize.addEventListener('click', () => this.applyCustomSizeInputs());
+            }
+            
+            // Scale buttons
+            document.querySelectorAll('.scale-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const scale = parseFloat(e.target.getAttribute('data-scale'));
+                    this.scaleIframe(scale);
+                });
+            });
+            
+            // Iframe size preset buttons
+            document.querySelectorAll('.size-preset-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const width = e.target.getAttribute('data-width');
+                    const height = e.target.getAttribute('data-height');
+                    this.setIframeSize(parseInt(width), parseInt(height));
                 });
             });
             
@@ -428,6 +487,166 @@ class StreamingStudio {
             this.updateStatus('Load Error', 'error');
             this.showWelcomeScreen();
         }
+    }
+    
+    updateIframeSize() {
+        if (!this.contentFrame || !this.iframeWidth || !this.iframeHeight) return;
+        
+        let width = parseInt(this.iframeWidth.value);
+        let height = parseInt(this.iframeHeight.value);
+        
+        // Handle aspect ratio locking
+        if (this.lockAspectRatio && this.lockAspectRatio.checked) {
+            const currentRatio = width / height;
+            if (Math.abs(currentRatio - this.currentAspectRatioValue) > 0.01) {
+                // If user changed width, adjust height
+                if (this.lastChangedDimension === 'width') {
+                    height = Math.round(width / this.currentAspectRatioValue);
+                    this.iframeHeight.value = height;
+                } else {
+                    // If user changed height, adjust width
+                    width = Math.round(height * this.currentAspectRatioValue);
+                    this.iframeWidth.value = width;
+                }
+            }
+        } else {
+            // Update aspect ratio if not locked
+            this.currentAspectRatioValue = width / height;
+        }
+        
+        // Update iframe size
+        this.contentFrame.style.width = `${width}px`;
+        this.contentFrame.style.height = `${height}px`;
+        
+        // Update display values
+        if (this.iframeWidthValue) {
+            this.iframeWidthValue.textContent = `${width}px`;
+        }
+        if (this.iframeHeightValue) {
+            this.iframeHeightValue.textContent = `${height}px`;
+        }
+        
+        // Update aspect ratio display
+        this.updateAspectRatioDisplay();
+        
+        // Update custom inputs to match sliders
+        if (this.customWidth) this.customWidth.value = width;
+        if (this.customHeight) this.customHeight.value = height;
+        
+        // Center the iframe in the content area
+        this.centerIframe();
+        
+        // Notify camera manager of iframe size change
+        if (this.cameraManager) {
+            setTimeout(() => {
+                this.cameraManager.handleIframeSizeChange();
+            }, 100);
+        }
+    }
+    
+    updateAspectRatioDisplay() {
+        if (!this.currentAspectRatio) return;
+        
+        const width = parseInt(this.iframeWidth.value || this.baseWidth);
+        const height = parseInt(this.iframeHeight.value || this.baseHeight);
+        const ratio = width / height;
+        
+        // Find closest common aspect ratio
+        const commonRatios = [
+            { ratio: 16/9, label: '16:9' },
+            { ratio: 4/3, label: '4:3' },
+            { ratio: 3/2, label: '3:2' },
+            { ratio: 1/1, label: '1:1' },
+            { ratio: 5/4, label: '5:4' },
+            { ratio: 21/9, label: '21:9' }
+        ];
+        
+        let closestRatio = commonRatios[0];
+        let smallestDiff = Math.abs(ratio - closestRatio.ratio);
+        
+        commonRatios.forEach(r => {
+            const diff = Math.abs(ratio - r.ratio);
+            if (diff < smallestDiff) {
+                smallestDiff = diff;
+                closestRatio = r;
+            }
+        });
+        
+        // Show exact ratio if no close match
+        if (smallestDiff > 0.05) {
+            const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+            const divisor = gcd(width, height);
+            this.currentAspectRatio.textContent = `${width/divisor}:${height/divisor}`;
+        } else {
+            this.currentAspectRatio.textContent = closestRatio.label;
+        }
+    }
+    
+    handleCustomSizeInput(dimension) {
+        // Track which dimension was last changed for aspect ratio locking
+        this.lastChangedDimension = dimension;
+        
+        if (this.lockAspectRatio && this.lockAspectRatio.checked) {
+            const width = parseInt(this.customWidth.value) || this.baseWidth;
+            const height = parseInt(this.customHeight.value) || this.baseHeight;
+            
+            if (dimension === 'width') {
+                const newHeight = Math.round(width / this.currentAspectRatioValue);
+                this.customHeight.value = newHeight;
+            } else {
+                const newWidth = Math.round(height * this.currentAspectRatioValue);
+                this.customWidth.value = newWidth;
+            }
+        }
+    }
+    
+    applyCustomSizeInputs() {
+        const width = parseInt(this.customWidth.value);
+        const height = parseInt(this.customHeight.value);
+        
+        if (!width || !height || width < 200 || height < 150) {
+            alert('Please enter valid dimensions (minimum 200×150)');
+            return;
+        }
+        
+        this.setIframeSize(width, height);
+    }
+    
+    scaleIframe(scale) {
+        const currentWidth = parseInt(this.iframeWidth.value);
+        const currentHeight = parseInt(this.iframeHeight.value);
+        
+        const newWidth = Math.round(this.baseWidth * scale);
+        const newHeight = Math.round(this.baseHeight * scale);
+        
+        this.setIframeSize(newWidth, newHeight);
+    }
+    
+    setIframeSize(width, height) {
+        if (!this.iframeWidth || !this.iframeHeight) return;
+        
+        // Update stored base dimensions and aspect ratio
+        this.baseWidth = width;
+        this.baseHeight = height;
+        this.currentAspectRatioValue = width / height;
+        
+        // Update slider values
+        this.iframeWidth.value = width;
+        this.iframeHeight.value = height;
+        
+        // Update the iframe
+        this.updateIframeSize();
+    }
+    
+    centerIframe() {
+        if (!this.contentFrame) return;
+        
+        // Center the iframe within the content display area
+        this.contentFrame.style.margin = '20px auto';
+        this.contentFrame.style.display = 'block';
+        this.contentFrame.style.border = '2px solid rgba(102, 126, 234, 0.3)';
+        this.contentFrame.style.borderRadius = '8px';
+        this.contentFrame.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
     }
     
     async handleMainMediaUpload(event) {

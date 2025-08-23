@@ -708,4 +708,27 @@ export default class CameraManager {
             this.updateCameraPosition();
         }
     }
+    
+    handleIframeSizeChange() {
+        // Called when iframe size is manually changed via controls
+        const iframe = document.querySelector('#contentFrame');
+        if (!iframe || iframe.style.display === 'none') return;
+        
+        // Update stored iframe size
+        const rect = iframe.getBoundingClientRect();
+        this.lastIframeSize = {
+            width: rect.width,
+            height: rect.height
+        };
+        
+        // Update camera position if needed
+        const isIframeMode = iframe.style.display !== 'none';
+        if (isIframeMode && this.cameraOverlay.style.left && this.cameraOverlay.style.top) {
+            // Reapply current position with new iframe dimensions
+            setTimeout(() => {
+                this.updatePrecisePosition();
+                this.updatePositionBars();
+            }, 50);
+        }
+    }
 }
