@@ -190,6 +190,36 @@ class StreamingStudio {
             return null;
         }
     }
+
+    updateRecordingButtons(recording) {
+        this.isRecording = recording;
+
+        if (this.recordBtn) {
+            const label = this.recordBtn.querySelector('.label');
+            const icon = this.recordBtn.querySelector('.icon');
+            this.recordBtn.dataset.recording = recording ? 'true' : 'false';
+            if (label) {
+                label.innerHTML = recording
+                    ? 'Stop Recording <span class="shortcut">(R)</span>'
+                    : 'Start Recording <span class="shortcut">(R)</span>';
+            }
+            if (icon) {
+                icon.textContent = recording ? '⏹️' : '⏺️';
+            }
+        }
+
+        if (this.iframeRecordBtn) {
+            const label = this.iframeRecordBtn.querySelector('.label');
+            const icon = this.iframeRecordBtn.querySelector('.icon');
+            this.iframeRecordBtn.dataset.recording = recording ? 'true' : 'false';
+            if (label) {
+                label.textContent = recording ? 'Stop IFrame' : 'Record IFrame';
+            }
+            if (icon) {
+                icon.textContent = recording ? '⏹️' : '🖼️';
+            }
+        }
+    }
     
     bindEvents() {
                 try {
@@ -233,17 +263,23 @@ class StreamingStudio {
             
             // Recording controls - with safe manager calls
             if (this.recordBtn) {
-                this.recordBtn.addEventListener('click', () =>
-                    this.safeManagerCall('recordingManager', 'toggleRecording')
-                );
+                this.recordBtn.addEventListener('click', async () => {
+                    if (!this.recordingManager?.isRecording) {
+                        await this.safeManagerCall('recordingManager', 'startRecording');
+                    } else {
+                        await this.safeManagerCall('recordingManager', 'stopRecording');
+                    }
+                    this.updateRecordingButtons(Boolean(this.recordingManager?.isRecording));
+                });
             }
             if (this.iframeRecordBtn) {
-                this.iframeRecordBtn.addEventListener('click', () => {
-                    if (!this.isRecording) {
-                        this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
+                this.iframeRecordBtn.addEventListener('click', async () => {
+                    if (!this.recordingManager?.isRecording) {
+                        await this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
                     } else {
-                        this.safeManagerCall('recordingManager', 'stopRecording');
+                        await this.safeManagerCall('recordingManager', 'stopRecording');
                     }
+                    this.updateRecordingButtons(Boolean(this.recordingManager?.isRecording));
                 });
             }
             if (this.pauseBtn) {
@@ -252,9 +288,10 @@ class StreamingStudio {
                 );
             }
             if (this.stopBtn) {
-                this.stopBtn.addEventListener('click', () => 
-                    this.safeManagerCall('recordingManager', 'stopRecording')
-                );
+                this.stopBtn.addEventListener('click', async () => {
+                    await this.safeManagerCall('recordingManager', 'stopRecording');
+                    this.updateRecordingButtons(Boolean(this.recordingManager?.isRecording));
+                });
             }
             
             // Info modal - with safe manager calls
@@ -288,7 +325,7 @@ class StreamingStudio {
     }
     
     bindKeyboardShortcuts() {
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', async (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
                 return;
             }
@@ -317,7 +354,8 @@ class StreamingStudio {
                 case 'r':
                     if (!this.isRecording) {
                         if (e.shiftKey) {
-                            this.recordingManager.startRecording();
+                            await this.safeManagerCall('recordingManager', 'startRecording');
+                            this.updateRecordingButtons(Boolean(this.recordingManager?.isRecording));
                         } else {
                             this.voiceRecorderManager.togglePanel();
                         }
@@ -334,7 +372,8 @@ class StreamingStudio {
                     break;
                 case 's':
                     if (this.isRecording) {
-                        this.recordingManager.stopRecording();
+                        await this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.updateRecordingButtons(Boolean(this.recordingManager?.isRecording));
                     }
                     e.preventDefault();
                     break;
