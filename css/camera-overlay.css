@@ -10,7 +10,7 @@
     overflow: hidden;
     z-index: 1000;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    border: 3px solid #667eea;
+    border: 3px solid transparent; /* Default transparent border */
     cursor: move;
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
@@ -27,7 +27,7 @@
 }
 
 .camera-overlay.shape-hexagon {
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%) !important;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%) !important;
     border-radius: 0 !important;
     transform-origin: center center !important;
 }
@@ -46,45 +46,181 @@
     transform-origin: center center !important;
 }
 
-.camera-overlay.border-none {
-    border: none;
+.camera-overlay.shape-triangle {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%) !important;
+    border-radius: 0 !important;
+    aspect-ratio: 1;
+    height: auto;
+    transform-origin: center center !important;
+}
+
+/* SVG-based borders for complex shapes */
+.camera-overlay.shape-hexagon.border-solid::before,
+.camera-overlay.shape-star.border-solid::before,
+.camera-overlay.shape-diamond.border-solid::before,
+.camera-overlay.shape-triangle.border-solid::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    width: calc(100% + 10px);
+    height: calc(100% + 10px);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.camera-overlay.shape-hexagon.border-solid::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='-5 -5 110 110' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 95,25 95,75 50,95 5,75 5,25' fill='none' stroke='%23667eea' stroke-width='4'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-star.border-solid::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='-5 -5 110 110' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 61,35 98,35 68,57 79,91 50,70 21,91 32,57 2,35 39,35' fill='none' stroke='%23667eea' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-diamond.border-solid::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='-5 -5 110 110' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 95,50 50,95 5,50' fill='none' stroke='%23667eea' stroke-width='4'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-triangle.border-solid::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='-5 -5 110 110' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 5,95 95,95' fill='none' stroke='%23667eea' stroke-width='4'/%3E%3C/svg%3E");
+}
+
+/* SVG-based glowing borders */
+.camera-overlay.shape-hexagon.border-glowing::before,
+.camera-overlay.shape-star.border-glowing::before,
+.camera-overlay.shape-diamond.border-glowing::before,
+.camera-overlay.shape-triangle.border-glowing::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: calc(100% + 16px);
+    height: calc(100% + 16px);
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5)) drop-shadow(0 0 20px rgba(102, 126, 234, 0.3));
+}
+
+.camera-overlay.shape-hexagon.border-glowing::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 95,25 95,75 50,95 5,75 5,25' fill='none' stroke='%23667eea' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-star.border-glowing::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 61,35 98,35 68,57 79,91 50,70 21,91 32,57 2,35 39,35' fill='none' stroke='%23667eea' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-diamond.border-glowing::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 95,50 50,95 5,50' fill='none' stroke='%23667eea' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-triangle.border-glowing::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 5,95 95,95' fill='none' stroke='%23667eea' stroke-width='3'/%3E%3C/svg%3E");
+}
+
+/* SVG-based neon borders */
+.camera-overlay.shape-hexagon.border-neon::before,
+.camera-overlay.shape-star.border-neon::before,
+.camera-overlay.shape-diamond.border-neon::before,
+.camera-overlay.shape-triangle.border-neon::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    width: calc(100% + 20px);
+    height: calc(100% + 20px);
+    pointer-events: none;
+    z-index: 1;
+    filter: drop-shadow(0 0 5px #00ff88) drop-shadow(0 0 10px #00ff88) drop-shadow(0 0 15px #00ff88);
+    animation: neonPulse 2s ease-in-out infinite alternate;
+}
+
+.camera-overlay.shape-hexagon.border-neon::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 95,25 95,75 50,95 5,75 5,25' fill='none' stroke='%2300ff88' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-star.border-neon::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 61,35 98,35 68,57 79,91 50,70 21,91 32,57 2,35 39,35' fill='none' stroke='%2300ff88' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-diamond.border-neon::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 95,50 50,95 5,50' fill='none' stroke='%2300ff88' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+.camera-overlay.shape-triangle.border-neon::before {
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='50,5 5,95 95,95' fill='none' stroke='%2300ff88' stroke-width='2'/%3E%3C/svg%3E");
+}
+
+/* Hide regular borders for complex shapes with SVG borders */
+.camera-overlay.shape-hexagon.border-solid,
+.camera-overlay.shape-star.border-solid,
+.camera-overlay.shape-diamond.border-solid,
+.camera-overlay.shape-triangle.border-solid,
+.camera-overlay.shape-hexagon.border-glowing,
+.camera-overlay.shape-star.border-glowing,
+.camera-overlay.shape-diamond.border-glowing,
+.camera-overlay.shape-triangle.border-glowing,
+.camera-overlay.shape-hexagon.border-neon,
+.camera-overlay.shape-star.border-neon,
+.camera-overlay.shape-diamond.border-neon,
+.camera-overlay.shape-triangle.border-neon {
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .camera-overlay.border-solid {
     border: 4px solid #667eea;
+    outline: none;
 }
 
 .camera-overlay.border-glowing {
     border: 3px solid #667eea;
+    outline: 2px solid rgba(102, 126, 234, 0.3);
+    outline-offset: 2px;
     box-shadow: 0 0 20px rgba(102, 126, 234, 0.5), 
-                0 0 40px rgba(102, 126, 234, 0.3),
-                inset 0 0 20px rgba(102, 126, 234, 0.1);
+                0 0 40px rgba(102, 126, 234, 0.3);
 }
 
 .camera-overlay.border-animated {
-    border: 3px solid transparent;
-    background: linear-gradient(45deg, #667eea, #764ba2, #667eea) border-box;
-    background-clip: border-box;
+    border: 3px solid #667eea;
+    outline: 2px solid #764ba2;
+    outline-offset: 2px;
     animation: borderRotate 3s linear infinite;
 }
 
 @keyframes borderRotate {
-    0% { filter: hue-rotate(0deg); }
-    100% { filter: hue-rotate(360deg); }
+    0% { 
+        border-color: #667eea;
+        outline-color: #764ba2;
+    }
+    50% { 
+        border-color: #764ba2;
+        outline-color: #667eea;
+    }
+    100% { 
+        border-color: #667eea;
+        outline-color: #764ba2;
+    }
 }
 
 .camera-overlay.border-neon {
     border: 2px solid #00ff88;
+    outline: 3px solid rgba(0, 255, 136, 0.4);
+    outline-offset: 3px;
     box-shadow: 0 0 10px #00ff88,
                 0 0 20px #00ff88,
-                0 0 40px #00ff88,
-                inset 0 0 10px rgba(0, 255, 136, 0.1);
+                0 0 40px #00ff88;
     animation: neonPulse 2s ease-in-out infinite alternate;
 }
 
 @keyframes neonPulse {
-    from { box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00ff88; }
-    to { box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88; }
+    from { 
+        box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, 0 0 40px #00ff88;
+        outline-color: rgba(0, 255, 136, 0.4);
+    }
+    to { 
+        box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88;
+        outline-color: rgba(0, 255, 136, 0.7);
+    }
 }
 
 .camera-overlay.effect-blur-bg::before {

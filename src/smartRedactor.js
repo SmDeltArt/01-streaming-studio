@@ -40,7 +40,6 @@ export default class SmartRedactorManager {
         this.redactorPanel = document.getElementById('smartRedactorPanel');
         this.redactorPanelCollapse = document.getElementById('redactorPanelCollapse');
         this.redactorPanelClose = document.getElementById('redactorPanelClose');
-        this.redactorPanelExpand = document.getElementById('redactorPanelExpand');
         
         // Analysis controls
         this.analyzeContentBtn = document.getElementById('analyzeContentBtn');
@@ -107,9 +106,6 @@ export default class SmartRedactorManager {
     bindEvents() {
         this.smartRedactorBtn.addEventListener('click', () => this.togglePanel());
         this.redactorPanelCollapse.addEventListener('click', () => this.toggleCollapse());
-        if (this.redactorPanelExpand) {
-            this.redactorPanelExpand.addEventListener('click', () => this.toggleCollapse());
-        }
         this.redactorPanelClose.addEventListener('click', () => this.hidePanel());
         
         // Analysis events
@@ -178,7 +174,7 @@ export default class SmartRedactorManager {
         
         // Keyboard shortcut
         document.addEventListener('keydown', (e) => {
-            if (e.key.toLowerCase() === 'a' && !e.target.matches('input, textarea, select')) {
+            if (e.key && e.key.toLowerCase() === 'a' && !e.target.matches('input, textarea, select')) {
                 this.togglePanel();
                 e.preventDefault();
             }
@@ -247,31 +243,27 @@ export default class SmartRedactorManager {
         // Panel dragging
         const header = this.redactorPanel.querySelector('.smart-redactor-header');
         this.setupElementDragging(header, this.redactorPanel);
-        const actions = this.redactorPanel.querySelector('.smart-redactor-actions');
-        if (actions) this.setupElementDragging(actions, this.redactorPanel);
-
+        
         // Vignette dragging
         const vignetteHeader = this.readingVignette.querySelector('.vignette-header');
         this.setupElementDragging(vignetteHeader, this.readingVignette, true);
     }
-
+    
     setupElementDragging(dragHandle, element, isVignette = false) {
-        if (!dragHandle) return;
         let isDragging = false;
         let startX, startY, initialX, initialY;
-
+        
         dragHandle.addEventListener('mousedown', (e) => {
-            if (e.target.tagName === 'BUTTON') return;
             isDragging = true;
             element.classList.add('dragging');
-
+            
             startX = e.clientX;
             startY = e.clientY;
-
+            
             const rect = element.getBoundingClientRect();
             initialX = rect.left;
             initialY = rect.top;
-
+            
             e.preventDefault();
         });
         
@@ -336,6 +328,9 @@ async createExternalAI() {
   // read user prefs/keys from Settings
   const pref = (localStorage.getItem('TXT_AI_PREF') || 'auto').toLowerCase();
   const keys = {
+    OPENAI_API_KEY:   localStorage.getItem('OPENAI_API_KEY')   || '',
+    XAI_API_KEY:      localStorage.getItem('XAI_API_KEY')      || '',
+    KIMI_API_KEY:     localStorage.getItem('KIMI_API_KEY')     || '',
     GROQ_API_KEY:     localStorage.getItem('GROQ_API_KEY')     || '',
     COHERE_API_KEY:   localStorage.getItem('COHERE_API_KEY')   || '',
     TOGETHER_API_KEY: localStorage.getItem('TOGETHER_API_KEY') || ''
@@ -343,6 +338,21 @@ async createExternalAI() {
 
   // Build priority by preference; skip providers with no key
   const base = [
+    keys.KIMI_API_KEY     && { name:'Kimi 2',   endpoint:'https://api.moonshot.cn/v1/chat/completions',
+      headers:()=>({'Authorization':`Bearer ${keys.KIMI_API_KEY}`,'Content-Type':'application/json'}),
+      req:(messages)=>({ model:'moonshot-v1-8k', messages, max_tokens:1000, temperature:0.7 }),
+      ext:(d)=>d?.choices?.[0]?.message?.content || '' },
+
+    keys.OPENAI_API_KEY   && { name:'OpenAI',   endpoint:'https://api.openai.com/v1/chat/completions',
+      headers:()=>({'Authorization':`Bearer ${keys.OPENAI_API_KEY}`,'Content-Type':'application/json'}),
+      req:(messages)=>({ model:'gpt-3.5-turbo', messages, max_tokens:1000, temperature:0.7 }),
+      ext:(d)=>d?.choices?.[0]?.message?.content || '' },
+
+    keys.XAI_API_KEY      && { name:'xAI',      endpoint:'https://api.x.ai/v1/chat/completions',
+      headers:()=>({'Authorization':`Bearer ${keys.XAI_API_KEY}`,'Content-Type':'application/json'}),
+      req:(messages)=>({ model:'grok-beta', messages, max_tokens:1000, temperature:0.7 }),
+      ext:(d)=>d?.choices?.[0]?.message?.content || '' },
+
     keys.GROQ_API_KEY     && { name:'Groq',     endpoint:'https://api.groq.com/openai/v1/chat/completions',
       headers:()=>({'Authorization':`Bearer ${keys.GROQ_API_KEY}`,'Content-Type':'application/json'}),
       req:(messages)=>({ model:'llama3-8b-8192', messages, max_tokens:800, temperature:0.7 }),
@@ -365,11 +375,14 @@ async createExternalAI() {
   ].filter(Boolean);
 
   const orderByPref = {
-    groq:     ['Groq','Cohere','Together'],
-    cohere:   ['Cohere','Groq','Together'],
-    together: ['Together','Groq','Cohere'],
-    auto:     ['Groq','Cohere','Together']
-  }[pref] || ['Groq','Cohere','Together'];
+    kimi:     ['Kimi 2','OpenAI','xAI','Groq','Cohere','Together'],
+    openai:   ['OpenAI','xAI','Groq','Cohere','Together','Kimi 2'],
+    xai:      ['xAI','OpenAI','Groq','Cohere','Together','Kimi 2'],
+    groq:     ['Groq','OpenAI','xAI','Cohere','Together','Kimi 2'],
+    cohere:   ['Cohere','OpenAI','xAI','Groq','Together','Kimi 2'],
+    together: ['Together','OpenAI','xAI','Groq','Cohere','Kimi 2'],
+    auto:     ['OpenAI','xAI','Groq','Cohere','Together','Kimi 2']
+  }[pref] || ['OpenAI','xAI','Groq','Cohere','Together','Kimi 2'];
 
   // Reorder base according to preference
   const providers = orderByPref

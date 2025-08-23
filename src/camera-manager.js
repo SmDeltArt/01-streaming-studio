@@ -4,6 +4,8 @@ export default class CameraManager {
         this.mediaStream = null;
         this.isDragging = false;
         this.dragOffset = { x: 0, y: 0 };
+        this.isUpdatingPositionBars = false;
+        this.recordedPosition = { x: 0, y: 0 }; // Simple recorded position in pixels
         
         this.initializeElements();
         this.bindEvents();
@@ -11,10 +13,51 @@ export default class CameraManager {
         this.initializeCameraSettings();
     }
     
+    setupIframeResizeDetection() {
+        // Monitor iframe size changes and adapt camera position
+        const checkIframeSize = () => {
+            const iframe = document.querySelector('#contentFrame');
+            if (iframe && iframe.style.display !== 'none') {
+                const rect = iframe.getBoundingClientRect();
+                const currentSize = { width: rect.width, height: rect.height };
+                
+                // If iframe size changed significantly, update camera position
+                if (Math.abs(currentSize.width - this.lastIframeSize.width) > 10 || 
+                    Math.abs(currentSize.height - this.lastIframeSize.height) > 10) {
+                    
+                    // Store current percentage values
+                    const currentX = parseInt(this.cameraXPosition.value);
+                    const currentY = parseInt(this.cameraYPosition.value);
+                    
+                    // Reapply position with new iframe dimensions
+                    if (currentX !== 0 || currentY !== 0) {
+                        setTimeout(() => {
+                            this.updatePrecisePosition();
+                        }, 100);
+                    }
+                    
+                    this.lastIframeSize = currentSize;
+                }
+            }
+        };
+        
+        // Check every 500ms for iframe size changes
+        setInterval(checkIframeSize, 500);
+        
+        // Also check on window resize
+        window.addEventListener('resize', () => {
+            setTimeout(checkIframeSize, 100);
+        });
+    }
+    
     initializeElements() {
         this.cameraPosition = document.getElementById('cameraPosition');
         this.cameraSize = document.getElementById('cameraSize');
         this.cameraSizeValue = document.getElementById('cameraSizeValue');
+        this.cameraXPosition = document.getElementById('cameraXPosition');
+        this.cameraYPosition = document.getElementById('cameraYPosition');
+        this.cameraXValue = document.getElementById('cameraXValue');
+        this.cameraYValue = document.getElementById('cameraYValue');
         this.frameShape = document.getElementById('frameShape');
         this.borderStyle = document.getElementById('borderStyle');
         this.visualEffects = document.getElementById('visualEffects');
@@ -33,6 +76,8 @@ export default class CameraManager {
     bindEvents() {
         this.cameraPosition.addEventListener('change', () => this.updateCameraPosition());
         this.cameraSize.addEventListener('input', () => this.updateCameraSize());
+        this.cameraXPosition.addEventListener('input', () => this.updatePrecisePosition());
+        this.cameraYPosition.addEventListener('input', () => this.updatePrecisePosition());
         this.frameShape.addEventListener('change', () => this.updateFrameShape());
         this.borderStyle.addEventListener('change', () => this.updateBorderStyle());
         this.visualEffects.addEventListener('change', () => this.updateVisualEffects());
@@ -89,17 +134,36 @@ export default class CameraManager {
             let newX = initialX + deltaX;
             let newY = initialY + deltaY;
             
-            const contentRect = this.app.contentDisplay.getBoundingClientRect();
-            const cameraRect = this.cameraOverlay.getBoundingClientRect();
+            // Simple boundary system: keep minimum 20px of camera visible
+            const iframe = document.querySelector('#contentFrame');
+            const isIframeMode = iframe && iframe.style.display !== 'none';
             
-            newX = Math.max(contentRect.left, Math.min(newX, contentRect.right - cameraRect.width));
-            newY = Math.max(contentRect.top, Math.min(newY, contentRect.bottom - cameraRect.height));
+            let boundaryRect;
+            if (isIframeMode) {
+                boundaryRect = iframe.getBoundingClientRect();
+            } else {
+                boundaryRect = this.app.contentDisplay.getBoundingClientRect();
+            }
+            
+            const cameraSize = parseInt(this.cameraSize.value);
+            const minVisible = 20; // Minimum 20px must stay visible
+            
+            // Keep at least 20px of camera visible within frame
+            newX = Math.max(boundaryRect.left - cameraSize + minVisible, 
+                           Math.min(newX, boundaryRect.right - minVisible));
+            newY = Math.max(boundaryRect.top - cameraSize + minVisible, 
+                           Math.min(newY, boundaryRect.bottom - minVisible));
             
             this.cameraOverlay.style.position = 'fixed';
             this.cameraOverlay.style.left = `${newX}px`;
             this.cameraOverlay.style.top = `${newY}px`;
             this.cameraOverlay.style.right = 'auto';
             this.cameraOverlay.style.bottom = 'auto';
+            
+            // Record current position for X/Y bars
+            this.recordedPosition.x = newX;
+            this.recordedPosition.y = newY;
+            this.updatePositionBarsFromRecorded();
             
             const currentShape = this.cameraOverlay.dataset.currentShape;
             const currentBorder = this.cameraOverlay.dataset.currentBorder;
@@ -128,7 +192,13 @@ export default class CameraManager {
                     this.cameraOverlay.style.left = `${cameraRect.left - contentRect.left}px`;
                     this.cameraOverlay.style.top = `${cameraRect.top - contentRect.top}px`;
                     
+                    // Force reapply all shape settings to ensure they stick after drag
                     this.forceApplyShapeSettings(currentShape, currentBorder, currentEffect);
+                    
+                    // Ensure transform origin is properly set for complex shapes
+                    if (['hexagon', 'star', 'diamond', 'triangle'].includes(currentShape)) {
+                        this.cameraOverlay.style.transformOrigin = 'center center';
+                    }
                     
                     if (currentAutoFocus) {
                         this.cameraOverlay.classList.add('auto-focus');
@@ -143,12 +213,20 @@ export default class CameraManager {
                     const shadowClass = Math.floor(parseInt(currentShadowIntensity) / 20) * 20;
                     this.cameraOverlay.classList.add(`shadow-${shadowClass}`);
                     
+                    // Update UI controls to match current settings
                     this.frameShape.value = currentShape;
                     this.borderStyle.value = currentBorder;
                     this.visualEffects.value = currentEffect;
                     this.autoFocus.checked = currentAutoFocus;
                     this.hoverScale.checked = currentHoverScale;
                     this.shadowIntensity.value = currentShadowIntensity;
+                    
+                    // Force a final reapplication to ensure everything sticks
+                    setTimeout(() => {
+                        this.forceApplyShapeSettings(currentShape, currentBorder, currentEffect);
+                        // Record final position after drag complete
+                        this.recordCurrentPosition();
+                    }, 10);
                     
                 }, 50);
             }
@@ -157,7 +235,7 @@ export default class CameraManager {
     
     forceApplyShapeSettings(shape, border, effect) {
         this.cameraOverlay.classList.remove(
-            'shape-circle', 'shape-rounded', 'shape-hexagon', 'shape-star', 'shape-diamond',
+            'shape-circle', 'shape-rounded', 'shape-hexagon', 'shape-star', 'shape-diamond', 'shape-triangle',
             'border-none', 'border-solid', 'border-glowing', 'border-animated', 'border-neon',
             'effect-none', 'effect-blur-bg', 'effect-vintage', 'effect-sepia', 'effect-grayscale', 'effect-high-contrast'
         );
@@ -165,14 +243,18 @@ export default class CameraManager {
         if (shape && shape !== 'rectangle') {
             this.cameraOverlay.classList.add(`shape-${shape}`);
             
-            if (['hexagon', 'star', 'diamond'].includes(shape)) {
+            if (['hexagon', 'star', 'diamond', 'triangle'].includes(shape)) {
                 this.cameraOverlay.style.transformOrigin = 'center center';
                 if (shape === 'star') {
+                    // Improved 5-pointed star with better proportions
                     this.cameraOverlay.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
                 } else if (shape === 'hexagon') {
-                    this.cameraOverlay.style.clipPath = 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)';
+                    // Improved hexagon with perfect proportions
+                    this.cameraOverlay.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
                 } else if (shape === 'diamond') {
                     this.cameraOverlay.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)';
+                } else if (shape === 'triangle') {
+                    this.cameraOverlay.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
                 }
             } else {
                 this.cameraOverlay.style.clipPath = '';
@@ -201,22 +283,212 @@ export default class CameraManager {
         this.updateShadowIntensity();
         this.updateAutoFocus();
         this.updateHoverScale();
+        
+        // Record initial position
+        setTimeout(() => {
+            this.recordCurrentPosition();
+        }, 100);
+    }
+    
+    updatePrecisePosition() {
+        if (this.isUpdatingPositionBars) return;
+        
+        const xOffset = parseInt(this.cameraXPosition.value); // -100 to +100
+        const yOffset = parseInt(this.cameraYPosition.value); // -100 to +100
+        
+        // Update display values
+        this.cameraXValue.textContent = `${xOffset}px`;
+        this.cameraYValue.textContent = `${yOffset}px`;
+        
+        // Apply simple offset to recorded position
+        const newX = this.recordedPosition.x + xOffset;
+        const newY = this.recordedPosition.y + yOffset;
+        
+        this.cameraOverlay.style.position = 'fixed';
+        this.cameraOverlay.style.left = `${newX}px`;
+        this.cameraOverlay.style.top = `${newY}px`;
+        this.cameraOverlay.style.right = 'auto';
+        this.cameraOverlay.style.bottom = 'auto';
+    }
+    
+    // Simple method to update bars based on recorded position
+    updatePositionBarsFromRecorded() {
+        if (this.isUpdatingPositionBars) return;
+        
+        this.isUpdatingPositionBars = true;
+        
+        // Calculate offset from recorded position
+        const currentX = parseFloat(this.cameraOverlay.style.left) || 0;
+        const currentY = parseFloat(this.cameraOverlay.style.top) || 0;
+        
+        const xOffset = Math.round(currentX - this.recordedPosition.x);
+        const yOffset = Math.round(currentY - this.recordedPosition.y);
+        
+        // Clamp to ±100px range
+        const clampedX = Math.max(-100, Math.min(100, xOffset));
+        const clampedY = Math.max(-100, Math.min(100, yOffset));
+        
+        this.cameraXPosition.value = clampedX;
+        this.cameraYPosition.value = clampedY;
+        this.cameraXValue.textContent = `${clampedX}px`;
+        this.cameraYValue.textContent = `${clampedY}px`;
+        
+        this.isUpdatingPositionBars = false;
+    }
+    
+    // Record current camera position as base reference
+    recordCurrentPosition() {
+        const currentX = parseFloat(this.cameraOverlay.style.left) || 0;
+        const currentY = parseFloat(this.cameraOverlay.style.top) || 0;
+        
+        this.recordedPosition.x = currentX;
+        this.recordedPosition.y = currentY;
+        
+        // Reset bars to 0 when recording new position
+        this.cameraXPosition.value = 0;
+        this.cameraYPosition.value = 0;
+        this.cameraXValue.textContent = '0px';
+        this.cameraYValue.textContent = '0px';
+    }
+    
+    // Stronger method to sync position bars with actual camera position
+    syncPositionBarsWithCamera() {
+        if (this.isUpdatingPositionBars) return; // Prevent circular updates
+        
+        const iframe = document.querySelector('#contentFrame');
+        const isIframeMode = iframe && iframe.style.display !== 'none';
+        
+        if (isIframeMode && this.cameraOverlay.style.left && this.cameraOverlay.style.top) {
+            this.isUpdatingPositionBars = true;
+            
+            const iframeRect = iframe.getBoundingClientRect();
+            const cameraRect = this.cameraOverlay.getBoundingClientRect();
+            const cameraSize = parseInt(this.cameraSize.value);
+            
+            // Calculate iframe center
+            const iframeCenterX = iframeRect.left + iframeRect.width * 0.5;
+            const iframeCenterY = iframeRect.top + iframeRect.height * 0.5;
+            
+            // Calculate camera center
+            const cameraCenterX = cameraRect.left + cameraSize * 0.5;
+            const cameraCenterY = cameraRect.top + cameraSize * 0.5;
+            
+            // Calculate movement from iframe center
+            const moveX = cameraCenterX - iframeCenterX;
+            const moveY = cameraCenterY - iframeCenterY;
+            
+            // Calculate max movement (50% of iframe size)
+            const maxMoveX = iframeRect.width * 0.5;
+            const maxMoveY = iframeRect.height * 0.5;
+            
+            // Convert to percentage (-100% to 100% range for stronger control)
+            const xPercent = maxMoveX > 0 ? Math.round((moveX / maxMoveX) * 100) : 0;
+            const yPercent = maxMoveY > 0 ? Math.round((moveY / maxMoveY) * 100) : 0;
+            
+            // Clamp values to slider range (-50% to 150%)
+            const clampedX = Math.max(-50, Math.min(150, xPercent));
+            const clampedY = Math.max(-50, Math.min(150, yPercent));
+            
+            // Update sliders and display values
+            this.cameraXPosition.value = clampedX;
+            this.cameraYPosition.value = clampedY;
+            this.cameraXValue.textContent = `${clampedX}%`;
+            this.cameraYValue.textContent = `${clampedY}%`;
+            
+            this.isUpdatingPositionBars = false;
+        }
+    }
+    
+    // Safety method to disable precise positioning if conflicts occur
+    disablePrecisePositioning() {
+        console.log('Disabling precise positioning due to conflicts...');
+        
+        // Hide the position controls
+        const preciseControls = document.querySelector('.precise-position-controls');
+        if (preciseControls) {
+            preciseControls.style.display = 'none';
+        }
+        
+        // Remove event listeners
+        if (this.cameraXPosition) {
+            this.cameraXPosition.removeEventListener('input', () => this.updatePrecisePosition());
+        }
+        if (this.cameraYPosition) {
+            this.cameraYPosition.removeEventListener('input', () => this.updatePrecisePosition());
+        }
+        
+        // Reset camera to preset positioning only
+        this.updateCameraPosition();
+        
+        console.log('Precise positioning disabled. Using preset positions only.');
+    }
+    
+    // Method to check system health and auto-disable if needed
+    checkSystemHealth() {
+        try {
+            const iframe = document.querySelector('#contentFrame');
+            if (!iframe || !this.cameraXPosition || !this.cameraYPosition) {
+                this.disablePrecisePositioning();
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Position system error:', error);
+            this.disablePrecisePositioning();
+            return false;
+        }
     }
     
     updateFrameShape() {
+        // Store current position before shape change
+        const currentLeft = this.cameraOverlay.style.left;
+        const currentTop = this.cameraOverlay.style.top;
+        const currentPosition = this.cameraOverlay.style.position;
+        
         const shape = this.frameShape.value;
         this.forceApplyShapeSettings(shape, this.borderStyle.value, this.visualEffects.value);
         this.updateCameraSize();
+        
+        // Restore position after shape change
+        if (currentLeft && currentTop) {
+            this.cameraOverlay.style.position = currentPosition;
+            this.cameraOverlay.style.left = currentLeft;
+            this.cameraOverlay.style.top = currentTop;
+        }
     }
     
     updateBorderStyle() {
+        // Store current position before border change
+        const currentLeft = this.cameraOverlay.style.left;
+        const currentTop = this.cameraOverlay.style.top;
+        const currentPosition = this.cameraOverlay.style.position;
+        
         const border = this.borderStyle.value;
         this.forceApplyShapeSettings(this.frameShape.value, border, this.visualEffects.value);
+        
+        // Restore position after border change
+        if (currentLeft && currentTop) {
+            this.cameraOverlay.style.position = currentPosition;
+            this.cameraOverlay.style.left = currentLeft;
+            this.cameraOverlay.style.top = currentTop;
+        }
     }
     
     updateVisualEffects() {
+        // Store current position before effect change
+        const currentLeft = this.cameraOverlay.style.left;
+        const currentTop = this.cameraOverlay.style.top;
+        const currentPosition = this.cameraOverlay.style.position;
+        
         const effect = this.visualEffects.value;
         this.forceApplyShapeSettings(this.frameShape.value, this.borderStyle.value, effect);
+        
+        // Restore position after effect change
+        if (currentLeft && currentTop) {
+            this.cameraOverlay.style.position = currentPosition;
+            this.cameraOverlay.style.left = currentLeft;
+            this.cameraOverlay.style.top = currentTop;
+        }
     }
     
     updateAutoFocus() {
@@ -250,42 +522,76 @@ export default class CameraManager {
         const position = this.cameraPosition.value;
         const overlay = this.cameraOverlay;
         
-        overlay.style.position = 'absolute';
+        // Reset positioning
         overlay.style.left = '';
         overlay.style.right = '';
         overlay.style.top = '';
         overlay.style.bottom = '';
+        overlay.style.transform = '';
         
-        switch (position) {
-            case 'top-left':
-                overlay.style.top = '20px';
-                overlay.style.left = '20px';
-                break;
-            case 'top-right':
-                overlay.style.top = '20px';
-                overlay.style.right = '20px';
-                break;
-            case 'bottom-left':
-                overlay.style.bottom = '20px';
-                overlay.style.left = '20px';
-                break;
-            case 'bottom-right':
-                overlay.style.bottom = '20px';
-                overlay.style.right = '20px';
-                break;
-            case 'center':
-                overlay.style.top = '50%';
-                overlay.style.left = '50%';
-                overlay.style.transform = 'translate(-50%, -50%)';
-                break;
+        // Check if we're in iframe mode (content frame visible)
+        const iframe = document.querySelector('#contentFrame');
+        const isIframeMode = iframe && iframe.style.display !== 'none';
+        
+        if (isIframeMode) {
+            // Position relative to centered iframe with proper margin calculations
+            overlay.style.position = 'fixed';
+            const iframeRect = iframe.getBoundingClientRect();
+            const overlaySize = parseInt(this.cameraSize.value);
+            const margin = 20; // Standard margin from frame edge
+            
+            switch (position) {
+                case 'top-left':
+                    overlay.style.top = (iframeRect.top + margin) + 'px';
+                    overlay.style.left = (iframeRect.left + margin) + 'px';
+                    break;
+                case 'top-right':
+                    overlay.style.top = (iframeRect.top + margin) + 'px';
+                    overlay.style.left = (iframeRect.right - overlaySize - margin) + 'px';
+                    break;
+                case 'center':
+                    overlay.style.top = (iframeRect.top + (iframeRect.height - overlaySize) / 2) + 'px';
+                    overlay.style.left = (iframeRect.left + (iframeRect.width - overlaySize) / 2) + 'px';
+                    break;
+            }
+        } else {
+            // Normal positioning for full screen mode
+            overlay.style.position = 'absolute';
+            
+            switch (position) {
+                case 'top-left':
+                    overlay.style.top = '20px';
+                    overlay.style.left = '20px';
+                    break;
+                case 'top-right':
+                    overlay.style.top = '20px';
+                    overlay.style.right = '20px';
+                    break;
+                case 'center':
+                    overlay.style.top = '50%';
+                    overlay.style.left = '50%';
+                    overlay.style.transform = 'translate(-50%, -50%)';
+                    break;
+            }
         }
+        
+        // Record preset position and reset offset bars
+        setTimeout(() => {
+            this.recordCurrentPosition();
+        }, 50);
     }
     
     updateCameraSize() {
+        // Store current position before size change
+        const currentLeft = this.cameraOverlay.style.left;
+        const currentTop = this.cameraOverlay.style.top;
+        const currentPosition = this.cameraOverlay.style.position;
+        const hasDraggedPosition = currentLeft && currentTop && (currentLeft !== '' && currentTop !== '');
+        
         const size = parseInt(this.cameraSize.value);
         const shape = this.frameShape.value;
         
-        if (shape === 'circle' || shape === 'diamond') {
+        if (shape === 'circle' || shape === 'diamond' || shape === 'triangle') {
             this.cameraOverlay.style.width = `${size}px`;
             this.cameraOverlay.style.height = `${size}px`;
         } else {
@@ -295,6 +601,16 @@ export default class CameraManager {
         }
         
         this.cameraSizeValue.textContent = `${size}px`;
+        
+        // Only update position if camera hasn't been manually dragged
+        if (!hasDraggedPosition) {
+            this.updateCameraPosition();
+        } else {
+            // Restore the dragged position
+            this.cameraOverlay.style.position = currentPosition;
+            this.cameraOverlay.style.left = currentLeft;
+            this.cameraOverlay.style.top = currentTop;
+        }
     }
     
     async toggleCameraStream() {

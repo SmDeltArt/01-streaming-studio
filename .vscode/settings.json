@@ -1,4 +1,4 @@
 {
     "liveServer.settings.port": 0,
-    "liveServer.settings.AdvanceCustomBrowserCmdLine": "microsoft-edge:--new-window",
+    "liveServer.settings.AdvanceCustomBrowserCmdLine": "chrome --new-window",
 }

@@ -88,7 +88,6 @@ class StreamingStudio {
         
         this.cameraBtn = document.getElementById('cameraBtn');
         this.micBtn = document.getElementById('micBtn');
-        this.iframeRecordBtn = document.getElementById('iframeRecordBtn');
         this.recordBtn = document.getElementById('recordBtn');
         this.pauseBtn = document.getElementById('pauseBtn');
         this.stopBtn = document.getElementById('stopBtn');
@@ -105,15 +104,14 @@ class StreamingStudio {
         // Info modal elements
         this.infoBtn = document.getElementById('infoBtn');
         this.infoModal = document.getElementById('infoModal');
-       this.infoCloseBtn = document.getElementById('infoCloseBtn');
+        this.infoCloseBtn = document.getElementById('infoCloseBtn');
 
                 this.validateRequiredElements();
-        this.verifyIframeRecordBtnWithinPanel();
     }
 
         validateRequiredElements() {
         const requiredElements = [
-            'urlInput', 'loadBtn', 'cameraBtn', 'micBtn', 'iframeRecordBtn', 'recordBtn',
+            'urlInput', 'loadBtn', 'cameraBtn', 'micBtn', 'recordBtn',
             'contentDisplay', 'statusDot', 'statusText'
         ];
         
@@ -125,25 +123,6 @@ class StreamingStudio {
         if (missingElements.length > 0) {
             console.warn('Missing required DOM elements:', missingElements);
             throw new Error(`Required DOM elements not found: ${missingElements.join(', ')}`);
-        }
-    }
-
-    verifyIframeRecordBtnWithinPanel() {
-        const controlPanel = document.querySelector('.control-panel');
-        if (!controlPanel || !this.iframeRecordBtn) return;
-
-        const btnRect = this.iframeRecordBtn.getBoundingClientRect();
-        const panelRect = controlPanel.getBoundingClientRect();
-
-        const isWithin = btnRect.top >= panelRect.top &&
-            btnRect.left >= panelRect.left &&
-            btnRect.bottom <= panelRect.bottom &&
-            btnRect.right <= panelRect.right;
-
-        if (!isWithin) {
-            const message = 'iframeRecordBtn is not fully contained within the control panel';
-            console.error(message, { btnRect, panelRect });
-            throw new Error(message);
         }
     }
     
@@ -233,21 +212,12 @@ class StreamingStudio {
             
             // Recording controls - with safe manager calls
             if (this.recordBtn) {
-                this.recordBtn.addEventListener('click', () =>
+                this.recordBtn.addEventListener('click', () => 
                     this.safeManagerCall('recordingManager', 'toggleRecording')
                 );
             }
-            if (this.iframeRecordBtn) {
-                this.iframeRecordBtn.addEventListener('click', () => {
-                    if (!this.isRecording) {
-                        this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
-                    } else {
-                        this.safeManagerCall('recordingManager', 'stopRecording');
-                    }
-                });
-            }
             if (this.pauseBtn) {
-                this.pauseBtn.addEventListener('click', () =>
+                this.pauseBtn.addEventListener('click', () => 
                     this.safeManagerCall('recordingManager', 'togglePause')
                 );
             }
@@ -760,3 +730,247 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(errorMessage);
     }
 });
+
+// Settings Management Functions
+function initializeSettingsManagement() {
+    const saveBtn = document.getElementById('saveSettingsBtn');
+    const loadBtn = document.getElementById('loadSettingsBtn');
+    const fileInput = document.getElementById('settingsFileInput');
+    
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveCurrentSettings);
+    }
+    
+    if (loadBtn) {
+        loadBtn.addEventListener('click', () => fileInput?.click());
+    }
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', handleSettingsFileLoad);
+    }
+    
+    // Update Kimi and ElevenLabs display when preferences change
+    const imgPref = document.getElementById('imgPref');
+    const txtPref = document.getElementById('txtPref');
+    const ttsPref = document.getElementById('ttsPref');
+    const kimiRow = document.getElementById('row-KIMI_API_KEY');
+    const elevenlabsRow = document.getElementById('row-ELEVENLABS_API_KEY');
+    
+    const updateConditionalDisplay = () => {
+        // Show Kimi key if selected in img or text preferences
+        if (kimiRow) {
+            const showKimi = (imgPref?.value === 'kimi') || (txtPref?.value === 'kimi');
+            kimiRow.style.display = showKimi ? 'block' : 'none';
+        }
+        
+        // Show ElevenLabs key if selected in TTS preferences
+        if (elevenlabsRow) {
+            const showElevenLabs = (ttsPref?.value === 'elevenlabs');
+            elevenlabsRow.style.display = showElevenLabs ? 'block' : 'none';
+        }
+    };
+    
+    if (imgPref) imgPref.addEventListener('change', updateConditionalDisplay);
+    if (txtPref) txtPref.addEventListener('change', updateConditionalDisplay);
+    if (ttsPref) ttsPref.addEventListener('change', updateConditionalDisplay);
+    
+    // Initial check
+    updateConditionalDisplay();
+}
+
+function saveCurrentSettings() {
+    try {
+        const settings = {
+            collectionId: 'SmDeltArt-SmΔrt-Collection',
+            version: '1.0.0',
+            exportedAt: new Date().toISOString(),
+            exportedFrom: 'SmΔrt Streaming Studio',
+            apiKeys: {},
+            preferences: {}
+        };
+        
+        // Save API keys
+        const keyMappings = [
+            { id: 'OPENAI_API_KEY', key: 'OPENAI_API_KEY' },
+            { id: 'XAI_API_KEY', key: 'XAI_API_KEY' },
+            { id: 'KIMI_API_KEY', key: 'KIMI_API_KEY' },
+            { id: 'FAL_API_KEY', key: 'FAL_API_KEY' },
+            { id: 'GROQ_API_KEY', key: 'GROQ_API_KEY' },
+            { id: 'COHERE_API_KEY', key: 'COHERE_API_KEY' },
+            { id: 'TOGETHER_API_KEY', key: 'TOGETHER_API_KEY' },
+            { id: 'ELEVENLABS_API_KEY', key: 'ELEVENLABS_API_KEY' },
+            { id: 'HUGGINGFACE_API_KEY', key: 'HUGGINGFACE_API_KEY' },
+            { id: 'GEMINI_API_KEY', key: 'GEMINI_API_KEY' },
+            { id: 'OLLAMA_ENDPOINT', key: 'OLLAMA_ENDPOINT' },
+            { id: 'DEEPSEEK_API_KEY', key: 'DEEPSEEK_API_KEY' }
+        ];
+        
+        keyMappings.forEach(({ id, key }) => {
+            const input = document.getElementById(id);
+            if (input && input.value.trim()) {
+                settings.apiKeys[key] = input.value.trim();
+            }
+        });
+        
+        // Save preferences
+        const imgPref = document.getElementById('imgPref');
+        const txtPref = document.getElementById('txtPref');
+        const ttsPref = document.getElementById('ttsPref');
+        
+        if (imgPref) settings.preferences.IMG_AI_PREF = imgPref.value;
+        if (txtPref) settings.preferences.TXT_AI_PREF = txtPref.value;
+        if (ttsPref) settings.preferences.TTS_AI_PREF = ttsPref.value;
+        
+        // Create and download file
+        const blob = new Blob([JSON.stringify(settings, null, 2)], {
+            type: 'application/json'
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `smart-settings-streaming-studio-${Date.now()}.smart`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        
+        // Show success message
+        showSettingsMessage('Settings saved successfully! 💾', 'success');
+        
+    } catch (error) {
+        console.error('Error saving settings:', error);
+        showSettingsMessage('Error saving settings: ' + error.message, 'error');
+    }
+}
+
+function handleSettingsFileLoad(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const settings = JSON.parse(e.target.result);
+            loadSettingsFromObject(settings);
+            showSettingsMessage('Settings loaded successfully! 📂', 'success');
+        } catch (error) {
+            console.error('Error loading settings:', error);
+            showSettingsMessage('Error loading settings: Invalid file format', 'error');
+        }
+    };
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+}
+
+function loadSettingsFromObject(settings) {
+    // Load API keys
+    if (settings.apiKeys) {
+        const keyMappings = [
+            { id: 'OPENAI_API_KEY', key: 'OPENAI_API_KEY' },
+            { id: 'XAI_API_KEY', key: 'XAI_API_KEY' },
+            { id: 'KIMI_API_KEY', key: 'KIMI_API_KEY' },
+            { id: 'FAL_API_KEY', key: 'FAL_API_KEY' },
+            { id: 'GROQ_API_KEY', key: 'GROQ_API_KEY' },
+            { id: 'COHERE_API_KEY', key: 'COHERE_API_KEY' },
+            { id: 'TOGETHER_API_KEY', key: 'TOGETHER_API_KEY' },
+            { id: 'ELEVENLABS_API_KEY', key: 'ELEVENLABS_API_KEY' },
+            { id: 'HUGGINGFACE_API_KEY', key: 'HUGGINGFACE_API_KEY' },
+            { id: 'GEMINI_API_KEY', key: 'GEMINI_API_KEY' },
+            { id: 'OLLAMA_ENDPOINT', key: 'OLLAMA_ENDPOINT' },
+            { id: 'DEEPSEEK_API_KEY', key: 'DEEPSEEK_API_KEY' }
+        ];
+        
+        keyMappings.forEach(({ id, key }) => {
+            const input = document.getElementById(id);
+            if (input && settings.apiKeys[key]) {
+                input.value = settings.apiKeys[key];
+                // Also save to localStorage
+                localStorage.setItem(key, settings.apiKeys[key]);
+            }
+        });
+    }
+    
+    // Load preferences
+    if (settings.preferences) {
+        const imgPref = document.getElementById('imgPref');
+        const txtPref = document.getElementById('txtPref');
+        const ttsPref = document.getElementById('ttsPref');
+        
+        if (imgPref && settings.preferences.IMG_AI_PREF) {
+            imgPref.value = settings.preferences.IMG_AI_PREF;
+            localStorage.setItem('IMG_AI_PREF', settings.preferences.IMG_AI_PREF);
+        }
+        
+        if (txtPref && settings.preferences.TXT_AI_PREF) {
+            txtPref.value = settings.preferences.TXT_AI_PREF;
+            localStorage.setItem('TXT_AI_PREF', settings.preferences.TXT_AI_PREF);
+        }
+        
+        if (ttsPref && settings.preferences.TTS_AI_PREF) {
+            ttsPref.value = settings.preferences.TTS_AI_PREF;
+            localStorage.setItem('TTS_AI_PREF', settings.preferences.TTS_AI_PREF);
+        }
+    }
+    
+    // Update conditional display after loading
+    const imgPrefEl = document.getElementById('imgPref');
+    const txtPrefEl = document.getElementById('txtPref');
+    const ttsPrefEl = document.getElementById('ttsPref');
+    const kimiRow = document.getElementById('row-KIMI_API_KEY');
+    const elevenlabsRow = document.getElementById('row-ELEVENLABS_API_KEY');
+    
+    if (kimiRow) {
+        const showKimi = (imgPrefEl?.value === 'kimi') || (txtPrefEl?.value === 'kimi');
+        kimiRow.style.display = showKimi ? 'block' : 'none';
+    }
+    
+    if (elevenlabsRow) {
+        const showElevenLabs = (ttsPrefEl?.value === 'elevenlabs');
+        elevenlabsRow.style.display = showElevenLabs ? 'block' : 'none';
+    }
+}
+
+function showSettingsMessage(message, type) {
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        ${type === 'success' ? 
+            'background: linear-gradient(135deg, #48bb78, #38a169); color: white;' : 
+            'background: linear-gradient(135deg, #f56565, #e53e3e); color: white;'}
+    `;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    // Animate in
+    setTimeout(() => {
+        messageDiv.style.transform = 'translateX(0)';
+        messageDiv.style.opacity = '1';
+    }, 100);
+    
+    // Remove after delay
+    setTimeout(() => {
+        messageDiv.style.transform = 'translateX(100%)';
+        messageDiv.style.opacity = '0';
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Initialize settings management when DOM is ready
+document.addEventListener('DOMContentLoaded', initializeSettingsManagement);

@@ -33,11 +33,7 @@
                         <span id="statusText">Ready</span>
                     </div>
                 </div>
-                <button id="iframeRecordBtn" class="btn secondary" title="Record IFrame">
-                    <span class="icon">🖼️</span>
-                    <span class="label">Record IFrame</span>
-                </button>
-
+                
                 <div class="control-section">
                     <h3>Media Source</h3>
                     <div class="media-upload-group">
@@ -66,7 +62,7 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="control-section">
                     <h3>Content Source</h3>
                     <div class="input-group">
@@ -82,11 +78,11 @@
                         <button class="quick-link-btn" data-url="about:blank">Blank Page</button>
                     </div>
                 </div>
-
+                
                     <button id="smartRedactorBtn" class="btn smart-redactor-btn" title="AI Smart Redactor (A)">
                         <span class="icon">🤖</span>
                         <span class="label">+ AI Redactor <span class="shortcut">(A)</span></span>
-                    </button>
+                    </button>                                     
                                              
                     <button id="voiceRecorderBtn" class="btn voice-recorder-btn" title="AI Voice Recorder (R)">
                         <span class="icon">🎙️</span>
@@ -129,10 +125,18 @@
                         <select id="cameraPosition">
                             <option value="top-right">Top Right</option>
                             <option value="top-left">Top Left</option>
-                            <option value="bottom-right">Bottom Right</option>
-                            <option value="bottom-left">Bottom Left</option>
                             <option value="center">Center</option>
                         </select>
+                        
+                        <div class="precise-position-controls">
+                            <label>X Offset:</label>
+                            <input type="range" id="cameraXPosition" min="-100" max="100" value="0" step="1">
+                            <span id="cameraXValue">0px</span>
+                            
+                            <label>Y Offset:</label>
+                            <input type="range" id="cameraYPosition" min="-100" max="100" value="0" step="1">
+                            <span id="cameraYValue">0px</span>
+                        </div>
                         
                         <label>Camera Size:</label>
                         <input type="range" id="cameraSize" min="150" max="400" value="250">
@@ -146,6 +150,7 @@
                             <option value="hexagon">Hexagon</option>
                             <option value="star">Star</option>
                             <option value="diamond">Diamond</option>
+                            <option value="triangle">△ Delta Triangle</option>
                         </select>
                         
                         <label>Border Style:</label>
@@ -193,14 +198,15 @@
                         <label>Recording Screen Size:</label>
                         <select id="recordingSize">
                             <option value="auto">Auto (Full Screen)</option>
-                            <option value="1920x1080">1920x1080 (1080p)</option>
-                            <option value="1280x720">1280x720 (720p)</option>
-                            <option value="854x480">854x480 (480p)</option>
-                            <option value="640x360">640x360 (360p)</option>
-                            <option value="1024x1024">1024x1024 (Square)</option>
-                            <option value="512x512">512x512 (Small Square)</option>
-                            <option value="1024x768">1024x768 (4:3)</option>
-                            <option value="800x600">800x600 (4:3 Small)</option>
+                            <option value="640x360">📺 640x360 (360p)</option>
+                            <option value="1280x720">📺 1280x720 (720p)</option>
+                            <option value="1920x1080">📺 1920x1080 (1080p)</option>
+                            <option value="256x256">🖼️ 256x256 (Small)</option>
+                            <option value="512x512">🖼️ 512x512 (Medium)</option>
+                            <option value="1024x1024">🖼️ 1024x1024 (Large)</option>
+                            <option value="540x960">📱 540x960 (Standard)</option>
+                            <option value="720x1280">📱 720x1280 (HD)</option>
+                            <option value="1080x1920">📱 1080x1920 (Full HD)</option>
                         </select>
                         <div class="size-display">
                             <span id="currentSize">Auto</span>
@@ -254,6 +260,7 @@
                         <span id="recordingStatusText">Ready to Record</span>
                         <span id="recordingTimer" style="display: none;">00:00</span>
                     </div>
+                    
                     <button id="recordBtn" class="btn record-btn" title="Start Recording (R)" data-recording="false">
                         <span class="icon">⏺️</span>
                         <span class="label">Start Recording <span class="shortcut">(R)</span></span>
@@ -326,7 +333,73 @@
                             </div>
                         </div>                         
                     </div>
-                    <div class="api-key-row" id="row-OPENAI_API_KEY">
+                    
+                    <div class="api-keys-section">
+                        <h4>🔑 API Keys & Preferences</h4>
+                        <p style="font-size: 12px; color: #888; margin-bottom: 12px;">
+                            Add your own API keys to use premium AI services for image generation. 
+                            The system will try your keys first, then fall back to WebSim AI → Pollinations.
+                        </p>
+                        
+                        <!-- Settings Management -->
+                        <div class="settings-management" style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button id="saveSettingsBtn" class="settings-btn" title="Save current API keys and preferences to file">
+                                💾 Save Settings
+                            </button>
+                            <button id="loadSettingsBtn" class="settings-btn" title="Load API keys and preferences from file">
+                                📂 Load Settings
+                            </button>
+                            <input type="file" id="settingsFileInput" accept=".json,.smart" style="display: none;">
+                        </div>
+                        
+<div class="api-key-row" id="row-IMG_AI_PREF">
+  <label for="imgPref">AI Image Priority</label>
+  <select id="imgPref">
+    <option value="auto">Auto (Try all available)</option>
+    <option value="kimi">Kimi 2 First (Chinese AI)</option>
+    <option value="openai">OpenAI DALL-E First</option>
+    <option value="xai">xAI Grok First</option>
+    <option value="fal">FAL.ai First</option>
+    <option value="pollinations">Pollinations Only</option>
+  </select>
+  <small style="display: block; color: #888; margin-top: 4px;">
+    Order: User APIs → WebSim AI → Pollinations → Offline
+  </small>
+</div>
+
+<div class="api-key-row" id="row-TXT_AI_PREF">
+  <label for="txtPref">AI Text Priority</label>
+  <select id="txtPref">
+    <option value="auto">Auto (Try all available)</option>
+    <option value="huggingface">🆓 HuggingFace First (FREE)</option>
+    <option value="gemini">🆓 Google Gemini First (FREE)</option>
+    <option value="ollama">🆓 Ollama Local First (FREE)</option>
+    <option value="deepseek">🆓 Deepseek First (FREE)</option>
+    <option value="kimi">Kimi 2 First (Chinese AI)</option>
+    <option value="openai">OpenAI GPT First</option>
+    <option value="xai">xAI Grok First</option>
+    <option value="groq">Groq First</option>
+    <option value="cohere">Cohere First</option>
+    <option value="together">Together First</option>
+  </select>
+  <small style="display: block; color: #888; margin-top: 4px;">
+    Order: User APIs → WebSim AI → Offline (Add API keys above for priority access)
+  </small>
+</div>
+
+<div class="api-key-row" id="row-TTS_AI_PREF">
+  <label for="ttsPref">AI TTS Priority</label>
+  <select id="ttsPref">
+    <option value="auto">Auto (Try all available)</option>
+    <option value="websim">WebSim TTS First</option>
+    <option value="openai">OpenAI TTS First</option>
+    <option value="elevenlabs">ElevenLabs First</option>
+    <option value="browser">Browser Speech Only</option>
+  </select>
+  <small style="display: block; color: #888; margin-top: 4px;">
+    Order: User APIs → WebSim TTS → Browser Speech → Offline
+  </small>
+</div>                    <div class="api-key-row" id="row-OPENAI_API_KEY">
   <label for="OPENAI_API_KEY">OpenAI key</label>
   <input id="OPENAI_API_KEY" type="password" placeholder="sk-..." />
 </div>
@@ -334,6 +407,14 @@
 <div class="api-key-row" id="row-XAI_API_KEY">
   <label for="XAI_API_KEY">xAI key</label>
   <input id="XAI_API_KEY" type="password" placeholder="xai-..." />
+</div>
+
+<div class="api-key-row" id="row-KIMI_API_KEY">
+  <label for="KIMI_API_KEY">Kimi key</label>
+  <input id="KIMI_API_KEY" type="password" placeholder="sk-..." />
+  <small style="display: block; color: #888; margin-top: 4px;">
+    Moonshot AI (Kimi) API key for Chinese AI services
+  </small>
 </div>
 
 <div class="api-key-row" id="row-FAL_API_KEY">
@@ -356,6 +437,46 @@
   <input id="TOGETHER_API_KEY" type="password" placeholder="..." />
 </div>
 
+<div class="api-key-row" id="row-ELEVENLABS_API_KEY" style="display: none;">
+  <label for="ELEVENLABS_API_KEY">ElevenLabs key</label>
+  <input id="ELEVENLABS_API_KEY" type="password" placeholder="..." />
+  <small style="display: block; color: #888; margin-top: 4px;">
+    ElevenLabs API key for premium voice synthesis
+  </small>
+</div>
+
+<div class="api-key-row" id="row-HUGGINGFACE_API_KEY" style="background: linear-gradient(45deg, #e8f5e8, #f0f8f0); border: 2px solid #4CAF50;">
+  <label for="HUGGINGFACE_API_KEY">🆓 HuggingFace key (FREE)</label>
+  <input id="HUGGINGFACE_API_KEY" type="password" placeholder="hf_..." />
+  <small style="display: block; color: #2e7d32; margin-top: 4px; font-weight: 500;">
+    ✅ FREE: 30k characters/month • Get at: <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: #1976d2;">huggingface.co/settings/tokens</a>
+  </small>
+</div>
+
+<div class="api-key-row" id="row-GEMINI_API_KEY" style="background: linear-gradient(45deg, #e3f2fd, #f1f8ff); border: 2px solid #2196F3;">
+  <label for="GEMINI_API_KEY">🆓 Google Gemini key (FREE)</label>
+  <input id="GEMINI_API_KEY" type="password" placeholder="AIza..." />
+  <small style="display: block; color: #1565c0; margin-top: 4px; font-weight: 500;">
+    ✅ FREE: 1M tokens/day • Get at: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #1976d2;">aistudio.google.com/app/apikey</a>
+  </small>
+</div>
+
+<div class="api-key-row" id="row-OLLAMA_ENDPOINT" style="background: linear-gradient(45deg, #f3e5f5, #faf5fb); border: 2px solid #9C27B0;">
+  <label for="OLLAMA_ENDPOINT">🆓 Ollama endpoint (FREE)</label>
+  <input id="OLLAMA_ENDPOINT" type="text" placeholder="http://localhost:11434" />
+  <small style="display: block; color: #7b1fa2; margin-top: 4px; font-weight: 500;">
+    ✅ FREE: Completely local • Download at: <a href="https://ollama.ai" target="_blank" style="color: #1976d2;">ollama.ai</a>
+  </small>
+</div>
+
+<div class="api-key-row" id="row-DEEPSEEK_API_KEY" style="background: linear-gradient(45deg, #fff3e0, #fafafa); border: 2px solid #FF9800;">
+  <label for="DEEPSEEK_API_KEY">🆓 Deepseek key (FREE)</label>
+  <input id="DEEPSEEK_API_KEY" type="password" placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+  <small style="display: block; color: #ef6c00; margin-top: 4px; font-weight: 500;">
+    ✅ FREE: Generous limits • Get at: <a href="https://platform.deepseek.com/api_keys" target="_blank" style="color: #1976d2;">platform.deepseek.com/api_keys</a>
+  </small>
+</div>
+                    </div>
 
                     <div class="control-section">
                         <h3>Cursor Effects</h3>
@@ -618,7 +739,6 @@
                 <button class="text-action-btn" id="previewTextBtn">👁 Preview</button>
                 <button class="text-action-btn" id="saveTextBtn">💾 Save</button>
                 <button class="text-action-btn" id="loadTextBtn">📁 Load</button>
-                <button class="text-action-btn" id="textPanelExpand" title="Expand">+</button>
             </div>
         </div>
 
@@ -870,7 +990,6 @@
                 <button class="image-action-btn" id="saveImageBtn">💾 Save</button>
                 <button class="image-action-btn" id="loadImageBtn">📁 Load</button>
                 <button class="image-action-btn danger" id="removeImageBtn">🗑 Remove</button>
-                <button class="image-action-btn" id="imagePanelExpand" title="Expand">+</button>
             </div>
         </div>
 
@@ -1001,7 +1120,6 @@
                 <button class="voice-action-btn primary" id="voiceSaveToActiveBtn">💾 Save to Active</button>
                 <button class="voice-action-btn secondary" id="voiceExportBtn">📤 Export Audio</button>
                 <button class="voice-action-btn" id="voiceSettingsBtn">⚙️ Settings</button>
-                <button class="voice-action-btn" id="voicePanelExpand" title="Expand">+</button>
             </div>
         </div>
           <!-- Smart Redactor Control Panel -->
@@ -1087,7 +1205,6 @@
                 <button class="redactor-action-btn secondary" id="saveRedactorBtn">💾 Save Content</button>
                 <button class="redactor-action-btn" id="loadRedactorBtn">📁 Load Content</button>
                 <button class="redactor-action-btn danger" id="removeContentBtn">🗑 Remove All</button>
-                <button class="redactor-action-btn" id="redactorPanelExpand" title="Expand">+</button>
             </div>
         </div>
 

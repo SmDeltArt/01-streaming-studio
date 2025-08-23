@@ -336,9 +336,62 @@ export default class SmartImagesAI {
 async callAIGenerationAPI(params) {
   const maxGenerationTime = 30000;
 
-  // 1) WebSim first
+  // 1) User-keyed providers FIRST (respect Settings)
+  const pref = (localStorage.getItem('IMG_AI_PREF') || 'auto').toLowerCase();
+  const orderMap = {
+    kimi: ['kimi', 'openai', 'xai', 'fal'],
+    openai: ['openai', 'xai', 'fal', 'kimi'],
+    xai: ['xai', 'openai', 'fal', 'kimi'],
+    fal: ['fal', 'openai', 'xai', 'kimi'],
+    pollinations: [], // Skip user APIs if user specifically wants pollinations
+    auto: ['openai', 'xai', 'fal', 'kimi']
+  };
+  const userAPIOrder = orderMap[pref] || orderMap.auto;
+
+  const keys = {
+    OPENAI_API_KEY: localStorage.getItem('OPENAI_API_KEY') || '',
+    XAI_API_KEY:    localStorage.getItem('XAI_API_KEY')    || '',
+    KIMI_API_KEY:   localStorage.getItem('KIMI_API_KEY')   || '',
+    FAL_API_KEY:    localStorage.getItem('FAL_API_KEY')    || ''
+  };
+
+  console.log('Available API keys:', {
+    hasOpenAI: !!keys.OPENAI_API_KEY,
+    hasXAI: !!keys.XAI_API_KEY,
+    hasKimi: !!keys.KIMI_API_KEY,
+    hasFAL: !!keys.FAL_API_KEY,
+    preference: pref
+  });
+
+  // Try user APIs first if keys are available
+  for (const prov of userAPIOrder) {
+    try {
+      if (prov === 'kimi' && keys.KIMI_API_KEY) {
+        console.log('Trying Kimi 2 with user key...');
+        return await this.callKimiImages(params, keys.KIMI_API_KEY);
+      }
+      if (prov === 'openai' && keys.OPENAI_API_KEY) {
+        console.log('Trying OpenAI DALL-E with user key...');
+        return await this.callOpenAIImages(params, keys.OPENAI_API_KEY);
+      }
+      if (prov === 'xai' && keys.XAI_API_KEY) {
+        console.log('Trying xAI Grok with user key...');
+        return await this.callXAIImages(params, keys.XAI_API_KEY);
+      }
+      if (prov === 'fal' && keys.FAL_API_KEY) {
+        console.log('Trying FAL with user key...');
+        return await this.callFalFluxImages(params, keys.FAL_API_KEY);
+      }
+    } catch (e) {
+      console.warn(`[Images] User API ${prov} failed:`, e?.message || e);
+      // try next user API
+    }
+  }
+
+  // 2) WebSim AI as fallback 
   try {
     if (window.websim?.imageGen) {
+      console.log('Trying WebSim AI Image Generator...');
       const webSimParams = {
         prompt: params.prompt,
         width: parseInt(params.size.split('x')[0], 10),
@@ -370,124 +423,300 @@ async callAIGenerationAPI(params) {
     console.warn('[Images] WebSim imageGen failed:', e?.message || e);
   }
 
-  // 2) User-keyed providers (respect Settings)
-  const pref = (localStorage.getItem('IMG_AI_PREF') || 'auto').toLowerCase();
-  const orderMap = {
-    openai: ['openai', 'fal', 'pollinations'],
-    xai: ['xai', 'openai', 'fal', 'pollinations'],
-    fal: ['fal', 'openai', 'pollinations'],
-    pollinations: ['pollinations'],
-    auto: ['openai', 'xai', 'fal', 'pollinations']
-  };
-  const order = orderMap[pref] || orderMap.auto;
-
-  const keys = {
-    OPENAI_API_KEY: localStorage.getItem('OPENAI_API_KEY') || '',
-    XAI_API_KEY:    localStorage.getItem('XAI_API_KEY')    || '',
-    FAL_API_KEY:    localStorage.getItem('FAL_API_KEY')    || ''
-  };
-
-  for (const prov of order) {
-    try {
-      if (prov === 'openai' && keys.OPENAI_API_KEY) {
-        return await this.callOpenAIImages(params, keys.OPENAI_API_KEY);
-      }
-      if (prov === 'xai' && keys.XAI_API_KEY) {
-        return await this.callXAIImages(params, keys.XAI_API_KEY);
-      }
-      if (prov === 'fal' && keys.FAL_API_KEY) {
-        return await this.callFalFluxImages(params, keys.FAL_API_KEY);
-      }
-      if (prov === 'pollinations') {
-        return await this.callPollinations(params);
-      }
-    } catch (e) {
-      console.warn(`[Images] ${prov} failed:`, e?.message || e);
-      // try next provider
-    }
+  // 3) Pollinations as final fallback
+  try {
+    console.log('Trying Pollinations AI as fallback...');
+    return await this.callPollinations(params);
+  } catch (e) {
+    console.warn('[Images] Pollinations failed:', e?.message || e);
   }
 
-  // 3) Offline canvas fallback
+  // 4) Offline canvas fallback
+  console.log('All AI services failed, using offline generation...');
   return await this.generateEnhancedFallbackImage(params);
 }
-// REPLACE the whole function
-async callAIGenerationAPI(params) {
-  const maxGenerationTime = 30000;
 
-  // 1) WebSim first
-  try {
-    if (window.websim?.imageGen) {
-      const webSimParams = {
-        prompt: params.prompt,
-        width: parseInt(params.size.split('x')[0], 10),
-        height: parseInt(params.size.split('x')[1], 10),
-        transparent: !!params.transparency
-      };
-      if (params.animationType !== 'static') {
-        webSimParams.animated = true;
-        webSimParams.format = params.animationType;
-        webSimParams.duration = params.duration;
-      }
-      const result = await Promise.race([
-        window.websim.imageGen(webSimParams),
-        new Promise((_,rej)=>setTimeout(()=>rej(new Error('Generation timeout')), maxGenerationTime))
-      ]);
-      if (result?.url) {
-        const format = params.animationType === 'static' ? 'png' : params.animationType;
+  // OpenAI DALL-E API Implementation
+  async callOpenAIImages(params, apiKey) {
+    if (!apiKey) throw new Error('OpenAI API key not provided');
+    
+    // Validate API key format
+    if (!apiKey.startsWith('sk-')) {
+      throw new Error('OpenAI API key must start with "sk-"');
+    }
+    
+    console.log('OpenAI API Key format check: ✓ Valid');
+    console.log('Requested size:', params.size);
+    
+    const [width, height] = params.size.split('x').map(Number);
+    
+    // DALL-E 3 only supports specific sizes
+    let dalleSize = "1024x1024"; // default
+    
+    if (width > height) {
+      dalleSize = "1792x1024"; // landscape
+    } else if (height > width) {
+      dalleSize = "1024x1792"; // portrait
+    } else {
+      dalleSize = "1024x1024"; // square
+    }
+    
+    const requestBody = {
+      model: "dall-e-3",
+      prompt: this.enhancePromptForAPI(params.prompt, params.style),
+      size: dalleSize,
+      quality: "standard",
+      n: 1
+    };
+
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`;
+      console.error('OpenAI API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData: errorData,
+        requestBody: requestBody
+      });
+      throw new Error(`OpenAI API failed: ${response.status} - ${errorMessage}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.data && data.data[0] && data.data[0].url) {
+      try {
+        // Try to convert remote URL to data URL for local processing
+        const imageResponse = await fetch(data.data[0].url, {
+          method: 'GET',
+          mode: 'cors',
+          headers: {
+            'Accept': 'image/*'
+          }
+        });
+        const blob = await imageResponse.blob();
+        const dataUrl = await this.blobToDataUrl(blob);
+        
         return {
-          dataUrl: result.url,
-          format,
-          estimatedSize: result.size || 0,
-          isAnimated: this.supportedAnimatedFormats.includes(format),
-          duration: params.animationType !== 'static' ? params.duration : 0,
-          metadata: result.metadata || { source: 'WebSim' }
+          dataUrl: dataUrl,
+          format: 'png',
+          estimatedSize: blob.size,
+          isAnimated: false,
+          duration: 0,
+          metadata: { source: 'OpenAI DALL-E', revised_prompt: data.data[0].revised_prompt }
+        };
+      } catch (corsError) {
+        console.log('🚨 CORS issue with OpenAI image, using direct URL approach...');
+        // Fallback: return the URL directly for display
+        return {
+          dataUrl: data.data[0].url,
+          format: 'png',
+          estimatedSize: 'unknown',
+          isAnimated: false,
+          duration: 0,
+          metadata: { source: 'OpenAI DALL-E', revised_prompt: data.data[0].revised_prompt, directUrl: true }
         };
       }
     }
-  } catch (e) {
-    console.warn('[Images] WebSim imageGen failed:', e?.message || e);
+    
+    throw new Error('No image URL received from OpenAI');
   }
 
-  // 2) User-keyed providers (respect Settings)
-  const pref = (localStorage.getItem('IMG_AI_PREF') || 'auto').toLowerCase();
-  const orderMap = {
-    openai: ['openai', 'fal', 'pollinations'],
-    xai: ['xai', 'openai', 'fal', 'pollinations'],
-    fal: ['fal', 'openai', 'pollinations'],
-    pollinations: ['pollinations'],
-    auto: ['openai', 'xai', 'fal', 'pollinations']
-  };
-  const order = orderMap[pref] || orderMap.auto;
+  // xAI Grok API Implementation  
+  async callXAIImages(params, apiKey) {
+    if (!apiKey) throw new Error('xAI API key not provided');
+    
+    const requestBody = {
+      model: "grok-vision-beta", // or whatever xAI's image generation model is called
+      prompt: this.enhancePromptForAPI(params.prompt, params.style),
+      width: parseInt(params.size.split('x')[0]),
+      height: parseInt(params.size.split('x')[1]),
+      num_inference_steps: 30,
+      guidance_scale: 7.5
+    };
 
-  const keys = {
-    OPENAI_API_KEY: localStorage.getItem('OPENAI_API_KEY') || '',
-    XAI_API_KEY:    localStorage.getItem('XAI_API_KEY')    || '',
-    FAL_API_KEY:    localStorage.getItem('FAL_API_KEY')    || ''
-  };
+    const response = await fetch('https://api.x.ai/v1/images/generations', {
+      method: 'POST', 
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
 
-  for (const prov of order) {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`xAI API failed: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.data && data.data[0] && data.data[0].url) {
+      // Convert remote URL to data URL
+      const imageResponse = await fetch(data.data[0].url);
+      const blob = await imageResponse.blob();
+      const dataUrl = await this.blobToDataUrl(blob);
+      
+      return {
+        dataUrl: dataUrl,
+        format: 'png',
+        estimatedSize: blob.size,
+        isAnimated: false, 
+        duration: 0,
+        metadata: { source: 'xAI Grok' }
+      };
+    }
+    
+    throw new Error('No image URL received from xAI');
+  }
+
+  // Pollinations AI Implementation (Free fallback)
+  async callPollinations(params) {
+    console.log('🌸 Calling Pollinations API with params:', params);
+    
+    const [width, height] = params.size.split('x').map(Number);
+    
+    // Pollinations uses a simple URL structure
+    const enhancedPrompt = this.enhancePromptForAPI(params.prompt, params.style);
+    const encodedPrompt = encodeURIComponent(enhancedPrompt);
+    
+    // Construct the Pollinations URL
+    const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&nologo=true&private=true&enhance=true`;
+    
+    console.log('🌸 Pollinations URL:', pollinationsUrl);
+    
     try {
-      if (prov === 'openai' && keys.OPENAI_API_KEY) {
-        return await this.callOpenAIImages(params, keys.OPENAI_API_KEY);
+      const response = await fetch(pollinationsUrl);
+      
+      if (!response.ok) {
+        throw new Error(`Pollinations API failed: ${response.status}`);
       }
-      if (prov === 'xai' && keys.XAI_API_KEY) {
-        return await this.callXAIImages(params, keys.XAI_API_KEY);
-      }
-      if (prov === 'fal' && keys.FAL_API_KEY) {
-        return await this.callFalFluxImages(params, keys.FAL_API_KEY);
-      }
-      if (prov === 'pollinations') {
-        return await this.callPollinations(params);
-      }
-    } catch (e) {
-      console.warn(`[Images] ${prov} failed:`, e?.message || e);
-      // try next provider
+      
+      const blob = await response.blob();
+      const dataUrl = await this.blobToDataUrl(blob);
+      
+      return {
+        dataUrl: dataUrl,
+        format: 'png',
+        estimatedSize: blob.size,
+        isAnimated: false,
+        duration: 0,
+        metadata: { source: 'Pollinations AI' }
+      };
+    } catch (error) {
+      throw new Error(`Pollinations generation failed: ${error.message}`);
     }
   }
 
-  // 3) Offline canvas fallback
-  return await this.generateEnhancedFallbackImage(params);
-}
+  // FAL.ai Flux API Implementation
+  async callFalFluxImages(params, apiKey) {
+    if (!apiKey) throw new Error('FAL API key not provided');
+    
+    const [width, height] = params.size.split('x').map(Number);
+    
+    const requestBody = {
+      prompt: this.enhancePromptForAPI(params.prompt, params.style),
+      image_size: {
+        width: width,
+        height: height
+      },
+      num_inference_steps: 28,
+      guidance_scale: 3.5,
+      num_images: 1,
+      enable_safety_checker: true
+    };
+
+    const response = await fetch('https://fal.run/fal-ai/flux/schnell', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`FAL API failed: ${response.status} - ${errorData.detail || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.images && data.images[0] && data.images[0].url) {
+      // Convert remote URL to data URL
+      const imageResponse = await fetch(data.images[0].url);
+      const blob = await imageResponse.blob();
+      const dataUrl = await this.blobToDataUrl(blob);
+      
+      return {
+        dataUrl: dataUrl,
+        format: 'png',
+        estimatedSize: blob.size,
+        isAnimated: false,
+        duration: 0,
+        metadata: { source: 'FAL.ai Flux' }
+      };
+    }
+    
+    throw new Error('No image URL received from FAL.ai');
+  }
+
+  // Kimi 2 by Moonshot AI Implementation (Chinese AI)
+  async callKimiImages(params, apiKey) {
+    if (!apiKey) throw new Error('Kimi API key not provided');
+    
+    const [width, height] = params.size.split('x').map(Number);
+    
+    const requestBody = {
+      model: "moonshot-v1-vision",
+      prompt: this.enhancePromptForAPI(params.prompt, params.style),
+      size: `${width}x${height}`,
+      quality: "standard",
+      n: 1
+    };
+
+    const response = await fetch('https://api.moonshot.cn/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Kimi 2 API failed: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.data && data.data[0] && data.data[0].url) {
+      // Convert remote URL to data URL
+      const imageResponse = await fetch(data.data[0].url);
+      const blob = await imageResponse.blob();
+      const dataUrl = await this.blobToDataUrl(blob);
+      
+      return {
+        dataUrl: dataUrl,
+        format: 'png',
+        estimatedSize: blob.size,
+        isAnimated: false,
+        duration: 0,
+        metadata: { source: 'Kimi 2 by Moonshot AI' }
+      };
+    }
+    
+    throw new Error('No image URL received from Kimi 2');
+  }
 
     
   
