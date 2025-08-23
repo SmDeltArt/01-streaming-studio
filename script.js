@@ -263,6 +263,7 @@ class StreamingStudio {
             
             // Recording controls - with safe manager calls
             if (this.recordBtn) {
+
                 this.recordBtn.addEventListener('click', async () => {
                     if (!this.recordingManager?.isRecording) {
                         await this.safeManagerCall('recordingManager', 'startRecording');
@@ -278,6 +279,46 @@ class StreamingStudio {
                         await this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
                     } else {
                         await this.safeManagerCall('recordingManager', 'stopRecording');
+=======
+                this.recordBtn.addEventListener('click', () => {
+                    const recording = this.recordBtn.dataset.recording === 'true';
+                    if (!recording) {
+                        this.safeManagerCall('recordingManager', 'startRecording');
+                        this.updateRecordingButtons(true);
+                    } else {
+                        this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.updateRecordingButtons(false);
+                    }
+                });
+            }
+            if (this.iframeRecordBtn) {
+                this.iframeRecordBtn.addEventListener('click', () => {
+                    const recording = this.iframeRecordBtn.dataset.recording === 'true';
+
+                    if (!recording) {
+                        this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
+                        this.updateRecordingButtons(true);
+                    } else {
+                        this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.updateRecordingButtons(false);
+
+                    const label = this.iframeRecordBtn.querySelector('.label');
+                    const icon = this.iframeRecordBtn.querySelector('.icon');
+
+                    if (!recording) {
+                        this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
+                        this.isRecording = true;
+                        this.iframeRecordBtn.dataset.recording = 'true';
+                        if (label) label.textContent = 'Stop IFrame';
+                        if (icon) icon.textContent = '⏹️';
+                    } else {
+                        this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.isRecording = false;
+                        this.iframeRecordBtn.dataset.recording = 'false';
+                        if (label) label.textContent = 'Record IFrame';
+                        if (icon) icon.textContent = '🖼️';
+
+
                     }
                     this.updateRecordingButtons(Boolean(this.recordingManager?.isRecording));
                 });
