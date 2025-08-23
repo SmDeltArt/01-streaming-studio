@@ -190,6 +190,36 @@ class StreamingStudio {
             return null;
         }
     }
+
+    updateRecordingButtons(recording) {
+        this.isRecording = recording;
+
+        if (this.recordBtn) {
+            const label = this.recordBtn.querySelector('.label');
+            const icon = this.recordBtn.querySelector('.icon');
+            this.recordBtn.dataset.recording = recording ? 'true' : 'false';
+            if (label) {
+                label.innerHTML = recording
+                    ? 'Stop Recording <span class="shortcut">(R)</span>'
+                    : 'Start Recording <span class="shortcut">(R)</span>';
+            }
+            if (icon) {
+                icon.textContent = recording ? '⏹️' : '⏺️';
+            }
+        }
+
+        if (this.iframeRecordBtn) {
+            const label = this.iframeRecordBtn.querySelector('.label');
+            const icon = this.iframeRecordBtn.querySelector('.icon');
+            this.iframeRecordBtn.dataset.recording = recording ? 'true' : 'false';
+            if (label) {
+                label.textContent = recording ? 'Stop IFrame' : 'Record IFrame';
+            }
+            if (icon) {
+                icon.textContent = recording ? '⏹️' : '🖼️';
+            }
+        }
+    }
     
     bindEvents() {
                 try {
@@ -233,13 +263,28 @@ class StreamingStudio {
             
             // Recording controls - with safe manager calls
             if (this.recordBtn) {
-                this.recordBtn.addEventListener('click', () =>
-                    this.safeManagerCall('recordingManager', 'toggleRecording')
-                );
+                this.recordBtn.addEventListener('click', () => {
+                    const recording = this.recordBtn.dataset.recording === 'true';
+                    if (!recording) {
+                        this.safeManagerCall('recordingManager', 'startRecording');
+                        this.updateRecordingButtons(true);
+                    } else {
+                        this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.updateRecordingButtons(false);
+                    }
+                });
             }
             if (this.iframeRecordBtn) {
                 this.iframeRecordBtn.addEventListener('click', () => {
                     const recording = this.iframeRecordBtn.dataset.recording === 'true';
+
+                    if (!recording) {
+                        this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
+                        this.updateRecordingButtons(true);
+                    } else {
+                        this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.updateRecordingButtons(false);
+
                     const label = this.iframeRecordBtn.querySelector('.label');
                     const icon = this.iframeRecordBtn.querySelector('.icon');
 
@@ -255,6 +300,7 @@ class StreamingStudio {
                         this.iframeRecordBtn.dataset.recording = 'false';
                         if (label) label.textContent = 'Record IFrame';
                         if (icon) icon.textContent = '🖼️';
+
                     }
                 });
             }
