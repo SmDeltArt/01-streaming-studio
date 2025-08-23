@@ -111,16 +111,49 @@ export default class RecordingManager {
                 height = window.innerHeight;
             } else {
                 [width, height] = recordingSize.split('x').map(s => parseInt(s));
-                
+
                                 const contentRect = this.app.contentDisplay.getBoundingClientRect();
                 region = {
                     x: Math.round(contentRect.left),
-                    y: Math.round(contentRect.top), 
+                    y: Math.round(contentRect.top),
                     width: width,
                     height: height
                 };
             }
-            
+
+            const isWindows = navigator.userAgent && navigator.userAgent.includes('Windows');
+            const shareXAvailable = isWindows && typeof window !== 'undefined' && typeof window.launchShareX === 'function';
+            if (shareXAvailable) {
+                this.updateRecordingStatus('preparing', 'Launching external recorder...');
+                await window.launchShareX(region);
+                this.websimRecordingSession = 'external-' + Date.now();
+                this.isRecording = true;
+                this.isPaused = false;
+                this.app.isRecording = true;
+                this.recordingStartTime = Date.now();
+                this.pausedDuration = 0;
+                this.updateRecordingStatus('recording', 'Recording via ShareX...');
+                if (this.app.updateStatus) {
+                    this.app.updateStatus('Recording via ShareX', 'recording');
+                }
+                this.app.recordBtn.setAttribute('data-recording', 'true');
+                this.app.recordBtn.querySelector('.label').innerHTML = 'Stop Recording <span class="shortcut">(R)</span>';
+                this.app.recordBtn.querySelector('.icon').textContent = '⏹️';
+                if (this.pauseBtn) {
+                    this.pauseBtn.style.display = 'none';
+                    this.pauseBtn.disabled = true;
+                }
+                if (this.app.stopBtn) {
+                    this.app.stopBtn.disabled = false;
+                }
+                if (this.recordingTimer) {
+                    this.recordingTimer.style.display = 'inline';
+                }
+                this.startRecordingTimer();
+                console.log('ShareX recording started');
+                return;
+            }
+
                         const screenCaptureOptions = {
                 video: {
                     mediaSource: 'screen',
