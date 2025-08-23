@@ -280,7 +280,7 @@
 }
 
 /* Special button styles */
-#iframeRecordBtn {
+#iframeRecordBtn.record-btn {
     position: sticky;
     top: 0;
     z-index: 1;

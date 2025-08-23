@@ -239,10 +239,22 @@ class StreamingStudio {
             }
             if (this.iframeRecordBtn) {
                 this.iframeRecordBtn.addEventListener('click', () => {
-                    if (!this.isRecording) {
+                    const recording = this.iframeRecordBtn.dataset.recording === 'true';
+                    const label = this.iframeRecordBtn.querySelector('.label');
+                    const icon = this.iframeRecordBtn.querySelector('.icon');
+
+                    if (!recording) {
                         this.safeManagerCall('recordingManager', 'startRecording', { source: 'iframe' });
+                        this.isRecording = true;
+                        this.iframeRecordBtn.dataset.recording = 'true';
+                        if (label) label.textContent = 'Stop IFrame';
+                        if (icon) icon.textContent = '⏹️';
                     } else {
                         this.safeManagerCall('recordingManager', 'stopRecording');
+                        this.isRecording = false;
+                        this.iframeRecordBtn.dataset.recording = 'false';
+                        if (label) label.textContent = 'Record IFrame';
+                        if (icon) icon.textContent = '🖼️';
                     }
                 });
             }
